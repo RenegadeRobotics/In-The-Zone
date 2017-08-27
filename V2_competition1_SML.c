@@ -37,12 +37,37 @@
 /*  function is only called once after the cortex has been powered on and    */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
-
+void waitUntilQuadrature(int sensorChosen, int amountToGo){
+	int currentCount = SensorValue[sensorChosen];
+	int finalAmount = currentCount + amountToGo;
+	while(SensorValue[sensorChosen] <= finalAmount) {wait1Msec(10);}
+}
 void DriveStraight(int clicks, int speed){
 	SetMotor(rightBack, speed, false);
 	SetMotor (rightFront, speed, false);
 	SetMotor (leftBack, speed, false);
 	SetMotor (leftFront, speed, false);
+	//untilEnconderCounts(clicks,dgtl3);
+waitUntilQuadrature(3, clicks)
+	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
+
+
+}
+
+void pointTurn (int clicks, int speed) {
+	SetMotor(rightBack, -1*speed, false);
+	SetMotor (rightFront, -1*speed, false);
+	SetMotor (leftBack, speed, false);
+	SetMotor (leftFront, speed, false);
+	waitUntilQuadrature(3, clicks)
+	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
+
 }
 void pre_auton()
 {
@@ -81,7 +106,7 @@ task autonomous()
 	// ..........................................................................
 
 	// Remove this function call once you have "real" code.
-	AutonomousCodePlaceholderForTesting();
+	DriveStraight(250, 50);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -103,7 +128,10 @@ task usercontrol()
 	int topPOTvalue;
 	int bottomPOTvalue;
 	int maxPOTvalue;
-	int maxPOT = 100;
+	int maxPOTtop = 2222;
+	int minPOTtop = 533;
+	int minPOTbottom = 640;
+	int maxPOTbottom = 2176;
 
 	int topPower = 0;
 	int bottomPower = 0;
@@ -150,7 +178,7 @@ task usercontrol()
 		else if( clawOpen == 1 ) motor[claw] = 100;
 		else motor[claw] = 0;
 
-		//potentiometer limits
+		//potentiometer limits+
 		topPOTvalue = SensorValue[topPOT];
 		bottomPOTvalue = SensorValue[bottomPOT];
 
@@ -173,10 +201,13 @@ task usercontrol()
 		if(bottomPOTvalue > maxPOTvalue) maxPOTvalue = bottomPOTvalue;
 
 		// potentiometer limits part 2
-		if(maxPOTvalue < maxPOT || maxPOTvalue > maxPOT && vexRT[Ch2] < -1 * DEADBAND){ motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
-		else if(maxPOTvalue > maxPOT) topPower = bottomPower = 0;
 
+		if((topPOTvalue < maxPOTtop && topPOTvalue > minPOTtop)||(bottomPOTvalue < maxPOTbottom && bottomPOTvalue > minPOTbottom)){ motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
+		else if(vexRT[Ch2]<0 && (topPOTvalue >= maxPOTtop || bottomPOTvalue > maxPOTbottom)){motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
+		else if(vexRT[Ch2]>0 && (topPOTvalue <= minPOTtop || bottomPOTvalue < minPOTbottom)){motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
+		else{}
 
 
 	}
+
 }
