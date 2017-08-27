@@ -20,11 +20,13 @@
 // This code is for the VEX cortex platform
 #pragma platform(VEX2)
 
-// Select Download method as "competition"
+// Select Download mthod as "competition"
 #pragma competitionControl(Competition)
 
 //Main competition background code...do not modify!
 #include "Vex_Competition_Includes.c"
+#include "Libraries/SmartMotorLib.c"
+#pragma systemFile
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -36,8 +38,16 @@
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
 
+void DriveStraight(int clicks, int speed){
+	SetMotor(rightBack, speed, false);
+	SetMotor (rightFront, speed, false);
+	SetMotor (leftBack, speed, false);
+	SetMotor (leftFront, speed, false);
+}
 void pre_auton()
 {
+
+	SmartMotorsInit();
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
 	// running between Autonomous and Driver controlled modes. You will need to
 	// manage all user created tasks if set to false.
@@ -64,6 +74,8 @@ void pre_auton()
 
 task autonomous()
 {
+	SmartMotorRun();
+
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
@@ -84,6 +96,7 @@ task autonomous()
 
 task usercontrol()
 {
+	SmartMotorRun();
 	int rightpower = 0;
 	int leftpower = 0;
 
@@ -120,12 +133,12 @@ task usercontrol()
 
 
 		// set left side motors;
-		motor[leftfront] = leftpower;
-		motor[leftback] = leftpower;
+		motor[leftFront] = leftpower;
+		motor[leftBack] = leftpower;
 
 		// set right side motors;
-		motor[rightfront] = rightpower;
-		motor[rightback] = rightpower;
+		motor[rightFront] = rightpower;
+		motor[rightBack] = rightpower;
 
 		// claw
 		clawOpen = 0;
