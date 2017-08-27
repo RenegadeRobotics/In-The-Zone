@@ -42,11 +42,11 @@ void waitUntilQuadrature(int sensorChosen, int amountToGo){
 	int finalAmount = currentCount + amountToGo;
 	while(SensorValue[sensorChosen] <= finalAmount) {wait1Msec(10);}
 }
-void DriveStraight(int clicks, int speed){
-	SetMotor(rightBack, speed, false);
-	SetMotor (rightFront, speed, false);
-	SetMotor (leftBack, speed, false);
-	SetMotor (leftFront, speed, false);
+void DriveStraight(int clicks, int power){
+	SetMotor(rightBack, power, false);
+	SetMotor (rightFront, power, false);
+	SetMotor (leftBack, power, false);
+	SetMotor (leftFront, power, false);
 	//untilEnconderCounts(clicks,dgtl3);
 waitUntilQuadrature(3, clicks)
 	SetMotor(rightBack, 0, false);
@@ -57,17 +57,29 @@ waitUntilQuadrature(3, clicks)
 
 }
 
-void pointTurn (int clicks, int speed) {
-	SetMotor(rightBack, -1*speed, false);
-	SetMotor (rightFront, -1*speed, false);
-	SetMotor (leftBack, speed, false);
-	SetMotor (leftFront, speed, false);
+void pointTurn (int clicks, int power) {
+	SetMotor(rightBack, -1*power, false);
+	SetMotor (rightFront, -1*power, false);
+	SetMotor (leftBack, power, false);
+	SetMotor (leftFront, power, false);
 	waitUntilQuadrature(3, clicks)
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
 	SetMotor (leftFront, 0, false);
 
+}
+
+void liftHeight (int time, int power){
+	SetMotor (bottomLift, power, false);
+	SetMotor (topLift, power, false);
+	wait1Msec(time);
+	SetMotor (topLift, 0, false);
+	SetMotor (bottomLift, 0, false);
+
+}
+
+void liftArm (int time, int power) {
 }
 void pre_auton()
 {
@@ -101,12 +113,14 @@ task autonomous()
 {
 	SmartMotorRun();
 
+
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
 
 	// Remove this function call once you have "real" code.
 	DriveStraight(250, 50);
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -118,6 +132,7 @@ task autonomous()
 /*                                                                           */
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
+
 
 task usercontrol()
 {
