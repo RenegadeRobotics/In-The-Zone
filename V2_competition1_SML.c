@@ -48,7 +48,7 @@ void DriveStraight(int clicks, int power){
 	SetMotor (leftBack, power, false);
 	SetMotor (leftFront, power, false);
 	//untilEnconderCounts(clicks,dgtl3);
-waitUntilQuadrature(3, clicks)
+waitUntilQuadrature(3, clicks);
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
@@ -62,7 +62,7 @@ void pointTurn (int clicks, int power) {
 	SetMotor (rightFront, -1*power, false);
 	SetMotor (leftBack, power, false);
 	SetMotor (leftFront, power, false);
-	waitUntilQuadrature(3, clicks)
+	waitUntilQuadrature(3, clicks);
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
@@ -134,11 +134,14 @@ task autonomous()
 /*---------------------------------------------------------------------------*/
 
 
-task usercontrol()
-{
+task usercontrol(){
+
 	SmartMotorRun();
 	int rightpower = 0;
 	int leftpower = 0;
+	int adjLeft = 0;
+	int adjRight = 0;
+	int inverseBtn = 0;
 
 	int topPOTvalue;
 	int bottomPOTvalue;
@@ -158,8 +161,8 @@ task usercontrol()
 #define MAX_POWER 127
 #define DEADBAND 5
 
-	while (true)
-	{
+	while (true){
+		/////////////////////////////////// CHASSIS
 		leftpower = (vexRT[Ch3] + vexRT[Ch4]);
 		rightpower = (vexRT[Ch3] - vexRT[Ch4]);
 
@@ -174,55 +177,58 @@ task usercontrol()
 		if(abs(leftpower) < DEADBAND) leftpower = 0;
 		if(abs(rightpower) < DEADBAND) rightpower = 0;
 
+		inverseBtn = vexRT(Btn6U);
+		if (inverseBtn == 1){
+			leftpower = leftpower*-1;
+			rightpower = rightpower*-1;
+			}
+
 
 		// set left side motors;
-		motor[leftFront] = leftpower;
-		motor[leftBack] = leftpower;
+		SetMotor[leftFront] = leftpower;
+		SetMotor[leftBack] = leftpower;
 
 		// set right side motors;
-		motor[rightFront] = rightpower;
-		motor[rightBack] = rightpower;
+		SetMotor[rightFront] = rightpower;
+		SetMotor[rightBack] = rightpower;
 
-		// claw
+		// small adjust
+		adjLeft = vexRT[Btn7L];
+		adjRight = vexRT[Btn7R];
+
+		if (adjLeft == 1){
+
+			SetMotor[rightFront] = 50;
+			SetMotor[rightBack] = 50;
+			SetMotor[leftFront] = 0;
+			SetMotor[leftBack] = 0;
+
+	}
+		else if(adjRight == 1) {
+
+			SetMotor[leftFront] = 50;
+			SetMotor[leftBack] = 50;
+			SetMotor[rightFront] = 0;
+			SetMotor[rightBack] = 0;
+	}
+
+		/////////////////////////////// CLAW
 		clawOpen = 0;
 		clawClose = 0;
-		clawOpen = vexRT[Btn8U];
-		clawClose = vexRT[Btn8D];
+		clawOpen = vexRT[Btn8UXmtr2];
+		clawClose = vexRT[Btn8DXmtr2];
 
-		if(clawClose == 1) motor[claw] = -100;
-		else if( clawOpen == 1 ) motor[claw] = 100;
-		else motor[claw] = 0;
+		if(clawClose == 1) SetMotor[claw] = -100;
+		else if( clawOpen == 1 ) SetMotor[claw] = 100;
+		else SetMotor[claw] = 0;
 
+
+
+		//////////////////////////////// LIFT
 		//potentiometer limits+
 		topPOTvalue = SensorValue[topPOT];
 		bottomPOTvalue = SensorValue[bottomPOT];
 
-		// lift  to joystick
-		topPower = vexRT[Ch2];
-		bottomPower = vexRT[Ch2];
 
-		if(abs(bottomPower) < DEADBAND) bottomPower = 0;
-		if(abs(topPower) < DEADBAND) topPower = 0;
-
-
-		// set bottom motors;
-		motor[bottomLift] = bottomPower;
-
-		// set top motors;
-		motor[topLift] = topPower;
-
-		// which POT is larger
-		maxPOTvalue = topPOTvalue;
-		if(bottomPOTvalue > maxPOTvalue) maxPOTvalue = bottomPOTvalue;
-
-		// potentiometer limits part 2
-
-		if((topPOTvalue < maxPOTtop && topPOTvalue > minPOTtop)||(bottomPOTvalue < maxPOTbottom && bottomPOTvalue > minPOTbottom)){ motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
-		else if(vexRT[Ch2]<0 && (topPOTvalue >= maxPOTtop || bottomPOTvalue > maxPOTbottom)){motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
-		else if(vexRT[Ch2]>0 && (topPOTvalue <= minPOTtop || bottomPOTvalue < minPOTbottom)){motor[topLift] = vexRT[Ch2]; motor[bottomLift] = vexRT[Ch2];}
-		else{}
-
-
+		}
 	}
-
-}
