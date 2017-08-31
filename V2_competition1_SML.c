@@ -137,25 +137,28 @@ task autonomous()
 task usercontrol(){
 
 	SmartMotorRun();
+	// chassis variables -------
 	int rightpower = 0;
 	int leftpower = 0;
 	int adjLeft = 0;
 	int adjRight = 0;
 	int inverseBtn = 0;
 
+	// claw variables -------
+	int clawOpen = 0;
+	int clawClose = 0;
+
+	// lift variables --------
 	int topPOTvalue;
 	int bottomPOTvalue;
 	int maxPOTvalue;
 	int maxPOTtop = 2222;
-	int minPOTtop = 533;
-	int minPOTbottom = 640;
+	// int minPOTtop = 533;
+	// int minPOTbottom = 640;
 	int maxPOTbottom = 2176;
 
 	int topPower = 0;
 	int bottomPower = 0;
-
-	int clawOpen = 0;
-	int clawClose = 0;
 
 
 #define MAX_POWER 127
@@ -177,12 +180,13 @@ task usercontrol(){
 		if(abs(leftpower) < DEADBAND) leftpower = 0;
 		if(abs(rightpower) < DEADBAND) rightpower = 0;
 
+		// make the back of the robot the front
+		// by pressing Button 6U
 		inverseBtn = vexRT(Btn6U);
 		if (inverseBtn == 1){
 			leftpower = leftpower*-1;
 			rightpower = rightpower*-1;
 			}
-
 
 		// set left side motors;
 		SetMotor[leftFront] = leftpower;
@@ -197,24 +201,21 @@ task usercontrol(){
 		adjRight = vexRT[Btn7R];
 
 		if (adjLeft == 1){
-
 			SetMotor[rightFront] = 50;
 			SetMotor[rightBack] = 50;
 			SetMotor[leftFront] = 0;
 			SetMotor[leftBack] = 0;
-
-	}
+		}
 		else if(adjRight == 1) {
-
 			SetMotor[leftFront] = 50;
 			SetMotor[leftBack] = 50;
 			SetMotor[rightFront] = 0;
 			SetMotor[rightBack] = 0;
-	}
+		}
 
 		/////////////////////////////// CLAW
-		clawOpen = 0;
-		clawClose = 0;
+		//clawOpen = 0;
+		//clawClose = 0;
 		clawOpen = vexRT[Btn8UXmtr2];
 		clawClose = vexRT[Btn8DXmtr2];
 
@@ -225,7 +226,8 @@ task usercontrol(){
 
 
 		//////////////////////////////// LIFT
-		//potentiometer limits+
+
+		//potentiometer values
 		topPOTvalue = SensorValue[topPOT];
 		bottomPOTvalue = SensorValue[bottomPOT];
 
