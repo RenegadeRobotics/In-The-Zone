@@ -25,6 +25,8 @@
 
 //Main competition background code...do not modify!
 #include "Vex_Competition_Includes.c"
+
+///SmartMotorLibrary by JPearman on the VEX forums
 #include "Libraries/SmartMotorLib.c"
 #pragma systemFile
 
@@ -48,7 +50,7 @@ void DriveStraight(int clicks, int power){
 	SetMotor (leftBack, power, false);
 	SetMotor (leftFront, power, false);
 	//untilEnconderCounts(clicks,dgtl3);
-waitUntilQuadrature(3, clicks);
+	waitUntilQuadrature(3, clicks);
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
@@ -56,6 +58,19 @@ waitUntilQuadrature(3, clicks);
 
 
 }
+
+void changeClaw (int direction){
+	if (direction == 1) { // 1 = open
+		SetMotor (claw,50,false);
+	}
+
+	else {
+		SetMotor (claw,-50,false);
+	}
+}
+
+
+
 
 void pointTurn (int clicks, int power) {
 	SetMotor(rightBack, -1*power, false);
@@ -112,6 +127,7 @@ void pre_auton()
 task autonomous()
 {
 	SmartMotorRun();
+	SmartMotorPtcMonitorEnable ();
 
 
 	// ..........................................................................
@@ -119,7 +135,50 @@ task autonomous()
 	// ..........................................................................
 
 	// Remove this function call once you have "real" code.
-	DriveStraight(250, 50);
+
+
+	////Close Claw
+
+	changeClaw (0);
+
+
+	///Raise lift
+
+	liftHeight (1000,127);
+
+
+	///Drive foward
+
+	DriveStraight (720,100);
+
+	///Open claw
+
+	changeClaw (1);
+
+	///Go backwards
+
+	DriveStraight (360,-100);
+
+
+
+	///Turn towards mobile goal
+
+	pointTurn (180, 110);
+	///Lower lift
+
+	/// Drive foward
+
+	//close claw
+
+	//lift lift
+
+	//Turn
+
+	//open claw
+
+
+
+
 
 }
 
@@ -137,6 +196,7 @@ task autonomous()
 task usercontrol(){
 
 	SmartMotorRun();
+	SmartMotorPtcMonitorEnable();
 	// chassis variables -------
 	int rightpower = 0;
 	int leftpower = 0;
@@ -186,7 +246,7 @@ task usercontrol(){
 		if (inverseBtn == 1){
 			leftpower = leftpower*-1;
 			rightpower = rightpower*-1;
-			}
+		}
 
 		// set left side motors;
 		SetMotor(leftFront, leftpower, false);
@@ -201,14 +261,14 @@ task usercontrol(){
 		adjRight = vexRT[Btn7R];
 
 		if (adjLeft == 1){
-			SetMotor(rightFront, 50, false);
-			SetMotor(rightBack, 50, false);
+			SetMotor(rightFront, 70, false);
+			SetMotor(rightBack, 70, false);
 			SetMotor(leftFront, 0, false);
 			SetMotor(leftBack, 0, false);
 		}
 		else if(adjRight == 1) {
-			SetMotor(leftFront, 50, false);
-			SetMotor(leftBack, 50, false);
+			SetMotor(leftFront, 70, false);
+			SetMotor(leftBack, 70, false);
 			SetMotor(rightFront, 0, false);
 			SetMotor(rightBack, 0, false);
 		}
@@ -241,16 +301,17 @@ task usercontrol(){
 				topPower = 0;
 				bottomPower = 0;
 			}
-		}
 
 
 
 
 
-		SetMotor(bottomLift, bottomPower, false);
-		SetMotor(topLift, topPower, false);
+
+			SetMotor(bottomLift, bottomPower, false);
+			SetMotor(topLift, topPower, false);
 
 
 
 		}
 	}
+}
