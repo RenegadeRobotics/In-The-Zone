@@ -189,28 +189,28 @@ task usercontrol(){
 			}
 
 		// set left side motors;
-		SetMotor[leftFront] = leftpower;
-		SetMotor[leftBack] = leftpower;
+		SetMotor(leftFront, leftpower, false);
+		SetMotor(leftBack, leftpower, false);
 
 		// set right side motors;
-		SetMotor[rightFront] = rightpower;
-		SetMotor[rightBack] = rightpower;
+		SetMotor(rightFront, rightpower, false);
+		SetMotor(rightBack, rightpower, false);
 
 		// small adjust
 		adjLeft = vexRT[Btn7L];
 		adjRight = vexRT[Btn7R];
 
 		if (adjLeft == 1){
-			SetMotor[rightFront] = 50;
-			SetMotor[rightBack] = 50;
-			SetMotor[leftFront] = 0;
-			SetMotor[leftBack] = 0;
+			SetMotor(rightFront, 50, false);
+			SetMotor(rightBack, 50, false);
+			SetMotor(leftFront, 0, false);
+			SetMotor(leftBack, 0, false);
 		}
 		else if(adjRight == 1) {
-			SetMotor[leftFront] = 50;
-			SetMotor[leftBack] = 50;
-			SetMotor[rightFront] = 0;
-			SetMotor[rightBack] = 0;
+			SetMotor(leftFront, 50, false);
+			SetMotor(leftBack, 50, false);
+			SetMotor(rightFront, 0, false);
+			SetMotor(rightBack, 0, false);
 		}
 
 		/////////////////////////////// CLAW
@@ -219,9 +219,9 @@ task usercontrol(){
 		clawOpen = vexRT[Btn8UXmtr2];
 		clawClose = vexRT[Btn8DXmtr2];
 
-		if(clawClose == 1) SetMotor[claw] = -100;
-		else if( clawOpen == 1 ) SetMotor[claw] = 100;
-		else SetMotor[claw] = 0;
+		if(clawClose == 1) SetMotor(claw, -100, false);
+		else if( clawOpen == 1 ) SetMotor(claw, 100, false);
+		else SetMotor(claw, 0, false);
 
 
 
