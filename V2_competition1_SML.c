@@ -232,5 +232,25 @@ task usercontrol(){
 		bottomPOTvalue = SensorValue[bottomPOT];
 
 
+		//LIFT
+		topPower = vexRT[Ch3Xmtr2];
+		bottomPower = vexRT[Ch3Xmtr2];
+
+		if (topPOTvalue >= maxPOTtop || bottomPOTvalue >= maxPOTbottom){
+			if (vexRT[Ch2] > 0 ){
+				topPower = 0;
+				bottomPower = 0;
+			}
+		}
+
+
+
+
+
+		SetMotor(bottomLift, bottomPower, false);
+		SetMotor(topLift, topPower, false);
+
+
+
 		}
 	}
