@@ -176,11 +176,19 @@ task autonomous()
 
 	//lift lift
 
-	liftHeight(1000,127);
+	liftHeight(700,127);
 
 	//Turn
 
 	pointTurn(-18,127);
+
+	///Drive foward
+
+	DriveStraight(300,127);
+
+	////lower lift
+
+	liftHeight(500,-127)
 
 	//open claw
 	changeClaw(1);
@@ -306,21 +314,15 @@ task usercontrol(){
 		bottomPower = vexRT[Ch3Xmtr2];
 
 		if (topPOTvalue >= maxPOTtop || bottomPOTvalue >= maxPOTbottom){
-			if (vexRT[Ch2] > 0 ){
+			if (vexRT[Ch3Xmtr2] > 0 ){
 				topPower = 0;
 				bottomPower = 0;
 			}
-
-
-
-
-
-
-			SetMotor(bottomLift, bottomPower, false);
+		}
+		SetMotor(bottomLift, bottomPower, false);
 			SetMotor(topLift, topPower, false);
-
-
 
 		}
 	}
-}
+
+
