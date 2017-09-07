@@ -28,6 +28,10 @@
 
 ///SmartMotorLibrary by JPearman on the VEX forums
 #include "Libraries/SmartMotorLib.c"
+
+//LCd selector libary by J. Pearman
+
+#include "Libaries/vaxLcdSelector-master/getlcdbuttons.c"
 #pragma systemFile
 
 /*---------------------------------------------------------------------------*/
@@ -39,6 +43,67 @@
 /*  function is only called once after the cortex has been powered on and    */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
+
+//LCD selector code by J.Pearman
+void
+LcdSetAutonomous( int value )
+{
+    // Simple selection display
+    if( value == 0 ) {
+        displayLCDString(0, 0, "Red Loader");
+        displayLCDString(1, 0, "[RL]   BL    Nl ");
+        }
+    if( value == 1 ) {
+        displayLCDString(0, 0, "Blue Loader");
+        displayLCDString(1, 0, " RL   [BL]   NL ");
+        }
+    if( value == 2 ) {
+        displayLCDString(0, 0, "No Loader");
+        displayLCDString(1, 0, " RL    BL   [NL]");
+        }
+
+    // Save autonomous mode for later
+    MyAutonomous = value;
+}
+
+
+/*-----------------------------------------------------------------------------*/
+/*  Select one of three autonomous choices                                     */
+/*-----------------------------------------------------------------------------*/
+
+void
+LcdAutonomousSelection()
+{
+    TControllerButtons  button;
+
+    // Clear LCD and turn on backlight
+    clearLCDLine(0);
+    clearLCDLine(1);
+    bLCDBacklight = true;
+
+    // diaplay default choice
+    LcdSetAutonomous(0);
+
+    while( bIfiRobotDisabled )
+        {
+        // this function blocks until button is pressed
+        button = getLcdButtons();
+
+        // Display and select the autonomous routine
+        if( button == kButtonLeft )
+            LcdSetAutonomous(0);
+
+        if( button == kButtonCenter )
+            LcdSetAutonomous(1);
+
+        if( button == kButtonRight )
+            LcdSetAutonomous(2);
+
+        // Don't hog the cpu !
+        wait1Msec(10);
+        }
+}
+
 void waitUntilQuadrature(int sensorChosen, int amountToGo){
 	int currentCount = SensorValue[sensorChosen];
 	int finalAmount = currentCount + amountToGo;
