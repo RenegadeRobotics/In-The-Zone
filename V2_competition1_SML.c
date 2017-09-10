@@ -42,62 +42,40 @@
 /*---------------------------------------------------------------------------*/
 
 
-
+// Function for wait for clicks on the shaft encoder
 void waitUntilQuadrature(int sensorChosen, int amountToGo){
 	int currentCount = SensorValue[sensorChosen];
 	int finalAmount = currentCount + amountToGo;
 	while(SensorValue[sensorChosen] <= finalAmount) {wait1Msec(10);}
 }
+
+// Function for drive straight using the encoders
 void DriveStraight(int clicks, int power){
 	SetMotor(rightBack, power, false);
 	SetMotor (rightFront, power, false);
 	SetMotor (leftBack, power, false);
 	SetMotor (leftFront, power, false);
-	//untilEnconderCounts(clicks,dgtl3);
 	waitUntilQuadrature(backLeftENC, clicks);
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
 	SetMotor (leftFront, 0, false);
-
-
 }
 
+// Function for opening and closing the claw
+// 1 = open
+// 0 = close
 void changeClaw (int direction){
-	if (direction == 1) { // 1 = open
-		SetMotor (claw,50,false);
+	if (direction == 1) {
+		SetMotor (claw,127,false);
 	}
-
 	else {
-		SetMotor (claw,-50,false);
+		SetMotor (claw,-127,false);
 	}
+	wait1Msec (400);
 }
 
-
-
-
-void pointTurn (int clicks, int power) {
-	SetMotor(rightBack, -1*power, false);
-	SetMotor (rightFront, -1*power, false);
-	SetMotor (leftBack, power, false);
-	SetMotor (leftFront, power, false);
-	waitUntilQuadrature(backLeftENC, clicks);
-	SetMotor(rightBack, 0, false);
-	SetMotor (rightFront, 0, false);
-	SetMotor (leftBack, 0, false);
-	SetMotor (leftFront, 0, false);
-
-}
-
-void liftHeight (int time, int power){
-	SetMotor (bottomLift, power, false);
-	SetMotor (topLift, power, false);
-	wait1Msec(time);
-	SetMotor (topLift, 0, false);
-	SetMotor (bottomLift, 0, false);
-
-}
-
+// Function for lifting the arm using the potentiometer
 void liftPOT (int power, int topPOTdest, int bottomPOTdest){
 	int runloop=1;
 	int topPOTvalue;
@@ -106,28 +84,32 @@ void liftPOT (int power, int topPOTdest, int bottomPOTdest){
 		//potentiometer values
 		topPOTvalue = SensorValue[topPOT];
 		bottomPOTvalue = SensorValue[bottomPOT];
-		if (topPOTvalue >= topPOTdest || bottomPOTvalue >= bottomPOTdest){
-			{
-				power = 0;
-				power = 0;
-				runloop=0;
-				}
+		if ((topPOTvalue >= topPOTdest || bottomPOTvalue >= bottomPOTdest)&& power>0)
+		{
+			power = 0;
+			power = 0;
+			runloop = 0;
+		}
+		if ((topPOTvalue <= topPOTdest || bottomPOTvalue <= bottomPOTdest)&& power<0)
+		{
+			power = 0;
+			power = 0;
+			runloop = 0;
 		}
 		SetMotor(bottomLift, power, false);
-			SetMotor(topLift, power, false);
+		SetMotor(topLift, power, false);
+	}
 }
-		}
 
-
-void liftArm (int time, int power) {
-}
 void pre_auton()
 {
-
 	SmartMotorsInit();
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
 	// running between Autonomous and Driver controlled modes. You will need to
 	// manage all user created tasks if set to false.
+
+
+	SmartMotorsAddPowerExtender(2,6,8);
 	bStopTasksBetweenModes = true;
 
 	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
@@ -146,44 +128,54 @@ void pre_auton()
 /*  This task is used to control your robot during the autonomous phase of   */
 /*  a VEX Competition.                                                       */
 /*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
 task autonomous()
 {
 	SmartMotorRun();
+	SmartMotorsAddPowerExtender(2,6,8);
 	SmartMotorPtcMonitorEnable ();
 
-	// ..........................................................................
-	// Insert user code here.
-	// ..........................................................................
-
-	// Remove this function call once you have "real" code.
-
-
-	////Close Claw
+	//Close Claw
 
 	changeClaw (0);
 
-	////Open Claw
+	//Open Claw
 	changeClaw (1);
 
-	////Close Claw
+	//Close Claw
 	changeClaw(0);
 
 
-	///Raise lift
+	//Raise lift
 
-	LiftPOT (127, 1822, 1792)
+	liftPOT (127, 1870, 1830);
 
 
-	///Drive foward
+	//Drive foward
 
-	DriveStraight (553,100);
+	DriveStraight (300,100);
 
-	///Open claw
+	//Lower Lift
+
+	liftPOT (-127, 1770, 1730);
+
+	//Open claw
 
 	changeClaw (1);
+
+	//Drive backward
+
+	SetMotor(rightBack, -127, false);
+	SetMotor (rightFront, -127, false);
+	SetMotor (leftBack, -127, false);
+	SetMotor (leftFront, -127, false);
+	wait1Msec (500);
+	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
+
 
 }
 
@@ -194,12 +186,11 @@ task autonomous()
 /*  This task is used to control your robot during the user control phase of */
 /*  a VEX Competition.                                                       */
 /*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
 
 task usercontrol(){
-
+	SmartMotorsAddPowerExtender(2,6,8);
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable();
 	// chassis variables -------
@@ -216,10 +207,7 @@ task usercontrol(){
 	// lift variables --------
 	int topPOTvalue;
 	int bottomPOTvalue;
-	int maxPOTvalue;
 	int maxPOTtop = 2222;
-	// int minPOTtop = 533;
-	// int minPOTbottom = 640;
 	int maxPOTbottom = 2176;
 
 	int topPower = 0;
@@ -230,7 +218,7 @@ task usercontrol(){
 #define DEADBAND 5
 
 	while (true){
-		/////////////////////////////////// CHASSIS
+		/*==================== Chassis =====================*/
 		leftpower = (vexRT[Ch3] + vexRT[Ch4]);
 		rightpower = (vexRT[Ch3] - vexRT[Ch4]);
 
@@ -278,9 +266,7 @@ task usercontrol(){
 			SetMotor(rightBack, 0, false);
 		}
 
-		/////////////////////////////// CLAW
-		//clawOpen = 0;
-		//clawClose = 0;
+		/*=============== Claw =============*/
 		clawOpen = vexRT[Btn6UXmtr2];
 		clawClose = vexRT[Btn6DXmtr2];
 
@@ -288,14 +274,11 @@ task usercontrol(){
 		else if( clawOpen == 1 ) SetMotor(claw, 100, false);
 		else SetMotor(claw, 0, false);
 
-
-
-		//////////////////////////////// LIFT
+		/*============== Lift =============*/
 
 		//potentiometer values
 		topPOTvalue = SensorValue[topPOT];
 		bottomPOTvalue = SensorValue[bottomPOT];
-
 
 		//LIFT
 		topPower = vexRT[Ch3Xmtr2];
@@ -308,7 +291,7 @@ task usercontrol(){
 			}
 		}
 		SetMotor(bottomLift, bottomPower, false);
-			SetMotor(topLift, topPower, false);
+		SetMotor(topLift, topPower, false);
 
-		}
 	}
+}
