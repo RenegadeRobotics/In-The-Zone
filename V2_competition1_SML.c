@@ -42,20 +42,27 @@
 /*---------------------------------------------------------------------------*/
 
 
-// Function for wait for clicks on the shaft encoder
+// Function for wait for clicks on the shaft encoder FORWARDS
 void waitUntilQuadrature(int sensorChosen, int amountToGo){
 	int currentCount = SensorValue[sensorChosen];
 	int finalAmount = currentCount + amountToGo;
 	while(SensorValue[sensorChosen] <= finalAmount) {wait1Msec(10);}
 }
 
+// Function for wait for clicks on the shaft encoder BACKWARDS
+void waitUntilQuadratureBackwards(int sensorChosen, int amountToGo){
+	int currentCount = SensorValue[sensorChosen];
+	int finalAmount = currentCount - amountToGo;
+	while(SensorValue[sensorChosen] >= finalAmount) {wait1Msec(10);}
+}
+
 // Function for drive straight using the encoders
-void DriveStraight(int clicks, int power){
+void driveStraight(int clicks, int power){
 	SetMotor(rightBack, power, false);
 	SetMotor (rightFront, power, false);
 	SetMotor (leftBack, power, false);
 	SetMotor (leftFront, power, false);
-	waitUntilQuadrature(backLeftENC, clicks);
+		waitUntilQuadrature(backLeftENC, clicks);
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
@@ -73,6 +80,7 @@ void changeClaw (int direction){
 		SetMotor (claw,-127,false);
 	}
 	wait1Msec (400);
+	SetMotor (claw, 0, false);
 }
 
 // Function for lifting the arm using the potentiometer
@@ -136,36 +144,72 @@ task autonomous()
 	SmartMotorsAddPowerExtender(2,6,8);
 	SmartMotorPtcMonitorEnable ();
 
-	//Close Claw
+	// Drive forward
+	SetMotor(rightBack, 100, false);
+	SetMotor (rightFront, 100, false);
+	SetMotor (leftBack, 100, false);
+	SetMotor (leftFront, 100, false);
+//		waitUntilQuadrature(backLeftENC, 150);
+/*	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
 
+	// Drive Backward
+	SetMotor(rightBack, -100, false);
+	SetMotor (rightFront, -100, false);
+	SetMotor (leftBack, -100, false);
+	SetMotor (leftFront, -100, false);
+	waitUntilQuadratureBackwards(backLeftENC, -100);
+	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
+
+	//Close Claw
 	changeClaw (0);
+
+	wait1Msec(10);
 
 	//Open Claw
 	changeClaw (1);
 
+	//Drive Forward
+	SetMotor(rightBack, 100, false);
+	SetMotor (rightFront, 100, false);
+	SetMotor (leftBack, 100, false);
+	SetMotor (leftFront, 100, false);
+	waitUntilQuadrature(backLeftENC, 80);
+	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
+
 	//Close Claw
 	changeClaw(0);
 
-
 	//Raise lift
-
 	liftPOT (127, 1870, 1830);
 
 
 	//Drive foward
-
-	DriveStraight (300,100);
+		SetMotor(rightBack, 100, false);
+	SetMotor (rightFront, 100, false);
+	SetMotor (leftBack, 100, false);
+	SetMotor (leftFront, 100, false);
+		waitUntilQuadrature(backLeftENC, 170);
+	SetMotor(rightBack, 0, false);
+	SetMotor (rightFront, 0, false);
+	SetMotor (leftBack, 0, false);
+	SetMotor (leftFront, 0, false);
 
 	//Lower Lift
-
 	liftPOT (-127, 1770, 1730);
 
 	//Open claw
-
 	changeClaw (1);
 
 	//Drive backward
-
 	SetMotor(rightBack, -127, false);
 	SetMotor (rightFront, -127, false);
 	SetMotor (leftBack, -127, false);
@@ -175,7 +219,7 @@ task autonomous()
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
 	SetMotor (leftFront, 0, false);
-
+*/
 
 }
 
