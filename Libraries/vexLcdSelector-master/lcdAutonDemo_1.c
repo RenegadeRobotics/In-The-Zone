@@ -94,7 +94,7 @@ LcdAutonomousSelection()
 void pre_auton()
 {
     bStopTasksBetweenModes = true;
-
+	
     LcdAutonomousSelection();
 }
 
