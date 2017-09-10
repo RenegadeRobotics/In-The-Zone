@@ -29,9 +29,6 @@
 ///SmartMotorLibrary by JPearman on the VEX forums
 #include "Libraries/SmartMotorLib.c"
 
-//LCd selector libary by J. Pearman
-
-#include "Libaries/vaxLcdSelector-master/getlcdbuttons.c"
 #pragma systemFile
 
 /*---------------------------------------------------------------------------*/
@@ -44,65 +41,7 @@
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
 
-//LCD selector code by J.Pearman
-void
-LcdSetAutonomous( int value )
-{
-    // Simple selection display
-    if( value == 0 ) {
-        displayLCDString(0, 0, "Red Loader");
-        displayLCDString(1, 0, "[RL]   BL    Nl ");
-        }
-    if( value == 1 ) {
-        displayLCDString(0, 0, "Blue Loader");
-        displayLCDString(1, 0, " RL   [BL]   NL ");
-        }
-    if( value == 2 ) {
-        displayLCDString(0, 0, "No Loader");
-        displayLCDString(1, 0, " RL    BL   [NL]");
-        }
 
-    // Save autonomous mode for later
-    MyAutonomous = value;
-}
-
-
-/*-----------------------------------------------------------------------------*/
-/*  Select one of three autonomous choices                                     */
-/*-----------------------------------------------------------------------------*/
-
-void
-LcdAutonomousSelection()
-{
-    TControllerButtons  button;
-
-    // Clear LCD and turn on backlight
-    clearLCDLine(0);
-    clearLCDLine(1);
-    bLCDBacklight = true;
-
-    // diaplay default choice
-    LcdSetAutonomous(0);
-
-    while( bIfiRobotDisabled )
-        {
-        // this function blocks until button is pressed
-        button = getLcdButtons();
-
-        // Display and select the autonomous routine
-        if( button == kButtonLeft )
-            LcdSetAutonomous(0);
-
-        if( button == kButtonCenter )
-            LcdSetAutonomous(1);
-
-        if( button == kButtonRight )
-            LcdSetAutonomous(2);
-
-        // Don't hog the cpu !
-        wait1Msec(10);
-        }
-}
 
 void waitUntilQuadrature(int sensorChosen, int amountToGo){
 	int currentCount = SensorValue[sensorChosen];
@@ -159,6 +98,27 @@ void liftHeight (int time, int power){
 
 }
 
+void liftPOT (int power, int topPOTdest, int bottomPOTdest){
+	int runloop=1;
+	int topPOTvalue;
+	int bottomPOTvalue;
+	while (runloop==1){
+		//potentiometer values
+		topPOTvalue = SensorValue[topPOT];
+		bottomPOTvalue = SensorValue[bottomPOT];
+		if (topPOTvalue >= topPOTdest || bottomPOTvalue >= bottomPOTdest){
+			{
+				power = 0;
+				power = 0;
+				runloop=0;
+				}
+		}
+		SetMotor(bottomLift, power, false);
+			SetMotor(topLift, power, false);
+}
+		}
+
+
 void liftArm (int time, int power) {
 }
 void pre_auton()
@@ -194,7 +154,6 @@ task autonomous()
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable ();
 
-
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
@@ -206,10 +165,16 @@ task autonomous()
 
 	changeClaw (0);
 
+	////Open Claw
+	changeClaw (1);
+
+	////Close Claw
+	changeClaw(0);
+
 
 	///Raise lift
 
-	liftHeight (1000,127);
+	LiftPOT (127, 1822, 1792)
 
 
 	///Drive foward
@@ -219,48 +184,6 @@ task autonomous()
 	///Open claw
 
 	changeClaw (1);
-
-	///Go backwards
-
-	DriveStraight (303,-100);
-
-
-
-	///Turn towards mobile goal
-
-	pointTurn (-310, 110);
-	///Lower lift
-
-	liftHeight(1000,-127);
-
-	/// Drive foward
-	DriveStraight(932,127);
-
-	//close claw
-	changeClaw(0);
-
-	//lift lift
-
-	liftHeight(700,127);
-
-	//Turn
-
-	pointTurn(-18,127);
-
-	///Drive foward
-
-	DriveStraight(300,127);
-
-	////lower lift
-
-	liftHeight(500,-127)
-
-	//open claw
-	changeClaw(1);
-
-
-
-
 
 }
 
@@ -358,8 +281,8 @@ task usercontrol(){
 		/////////////////////////////// CLAW
 		//clawOpen = 0;
 		//clawClose = 0;
-		clawOpen = vexRT[Btn8UXmtr2];
-		clawClose = vexRT[Btn8DXmtr2];
+		clawOpen = vexRT[Btn6UXmtr2];
+		clawClose = vexRT[Btn6DXmtr2];
 
 		if(clawClose == 1) SetMotor(claw, -100, false);
 		else if( clawOpen == 1 ) SetMotor(claw, 100, false);
@@ -389,5 +312,3 @@ task usercontrol(){
 
 		}
 	}
-
-
