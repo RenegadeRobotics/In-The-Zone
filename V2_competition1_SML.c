@@ -69,6 +69,8 @@ void changeClaw (int direction){
 	else {
 		SetMotor (claw,-80,false);
 	}
+	wait1Msec(500);
+	SetMotor(claw, 0, false);
 }
 
 void liftPOT (int power, int topPOTdest, int bottomPOTdest){
@@ -137,19 +139,12 @@ void pre_auton()
 /*  This task is used to control your robot during the autonomous phase of   */
 /*  a VEX Competition.                                                       */
 /*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
 task autonomous()
 {
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable ();
-
-	// ..........................................................................
-	// Insert user code here.
-	// ..........................................................................
-
-	// Remove this function call once you have "real" code.
 
 	//Drive forward
 	wait1Msec(100);
@@ -236,7 +231,6 @@ task autonomous()
 /*  This task is used to control your robot during the user control phase of */
 /*  a VEX Competition.                                                       */
 /*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
 
@@ -259,8 +253,7 @@ task usercontrol(){
 	int topPOTvalue;
 	int bottomPOTvalue;
 	int maxPOTtop = 2222;
-	// int minPOTtop = 533;
-	// int minPOTbottom = 640;
+
 	int maxPOTbottom = 2176;
 
 	int topPower = 0;
@@ -271,7 +264,7 @@ task usercontrol(){
 #define DEADBAND 5
 
 	while (true){
-		/////////////////////////////////// CHASSIS
+		////////// Chassis //////////
 		leftpower = (vexRT[Ch3] + vexRT[Ch4]);
 		rightpower = (vexRT[Ch3] - vexRT[Ch4]);
 
@@ -318,10 +311,7 @@ task usercontrol(){
 			SetMotor(rightFront, 0, false);
 			SetMotor(rightBack, 0, false);
 		}
-
-		/////////////////////////////// CLAW
-		//clawOpen = 0;
-		//clawClose = 0;
+		////////// Claw //////////
 		clawOpen = vexRT[Btn6UXmtr2];
 		clawClose = vexRT[Btn6DXmtr2];
 
@@ -331,7 +321,7 @@ task usercontrol(){
 
 
 
-		//////////////////////////////// LIFT
+		////////// Lift //////////
 
 		//potentiometer values
 		topPOTvalue = SensorValue[topPOT];
