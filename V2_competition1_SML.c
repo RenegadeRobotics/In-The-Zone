@@ -180,12 +180,12 @@ task autonomous()
 	//Close Claw
 	changeClaw (0);
   wait1Msec(500);
-  SetMotor(claw,0,false);
+
 
 	//Open Claw
 	changeClaw (1);
   wait1Msec(500);
-  SetMotor(claw,0,false);
+
 
 	//Drive forwards
   SetMotor(leftFront, 70, false);
@@ -219,7 +219,6 @@ task autonomous()
 	wait1Msec(100);
 
 	//Open claw
-	changeClaw (1);
 	changeClaw (1);
 	wait1Msec(100);
 }
