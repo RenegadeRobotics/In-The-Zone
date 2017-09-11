@@ -53,14 +53,12 @@ void DriveStraight(int clicks, int power){
 	SetMotor (rightFront, power, false);
 	SetMotor (leftBack, power, false);
 	SetMotor (leftFront, power, false);
-	//untilEnconderCounts(clicks,dgtl3);
+
 	waitUntilQuadrature(backLeftENC, clicks);
 	SetMotor(rightBack, 0, false);
 	SetMotor (rightFront, 0, false);
 	SetMotor (leftBack, 0, false);
 	SetMotor (leftFront, 0, false);
-
-
 }
 
 void changeClaw (int direction){
@@ -71,31 +69,6 @@ void changeClaw (int direction){
 	else {
 		SetMotor (claw,-80,false);
 	}
-}
-
-
-
-
-void pointTurn (int clicks, int power) {
-	SetMotor(rightBack, -1*power, false);
-	SetMotor (rightFront, -1*power, false);
-	SetMotor (leftBack, power, false);
-	SetMotor (leftFront, power, false);
-	waitUntilQuadrature(backLeftENC, clicks);
-	SetMotor(rightBack, 0, false);
-	SetMotor (rightFront, 0, false);
-	SetMotor (leftBack, 0, false);
-	SetMotor (leftFront, 0, false);
-
-}
-
-void liftHeight (int time, int power){
-	SetMotor (bottomLift, power, false);
-	SetMotor (topLift, power, false);
-	wait1Msec(time);
-	SetMotor (topLift, 0, false);
-	SetMotor (bottomLift, 0, false);
-
 }
 
 void liftPOT (int power, int topPOTdest, int bottomPOTdest){
@@ -138,8 +111,7 @@ void lowerPOT (int power, int topPOTdest, int bottomPOTdest){
 }
 		}
 
-void liftArm (int time, int power) {
-}
+
 void pre_auton()
 {
 
@@ -212,11 +184,13 @@ task autonomous()
 
 	//Close Claw
 	changeClaw (0);
-  wait1Msec(1000);
+  wait1Msec(500);
+  SetMotor(claw,0,false);
 
 	//Open Claw
 	changeClaw (1);
-  wait1Msec(1000);
+  wait1Msec(500);
+  SetMotor(claw,0,false);
 
 	//Drive forwards
   SetMotor(leftFront, 70, false);
@@ -284,7 +258,6 @@ task usercontrol(){
 	// lift variables --------
 	int topPOTvalue;
 	int bottomPOTvalue;
-	int maxPOTvalue;
 	int maxPOTtop = 2222;
 	// int minPOTtop = 533;
 	// int minPOTbottom = 640;
