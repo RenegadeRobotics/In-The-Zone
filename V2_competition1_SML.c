@@ -69,7 +69,7 @@ void changeClaw (int direction){
 	else {
 		SetMotor (claw,-80,false);
 	}
-	wait1Msec(500);
+	wait1Msec(1500);
 	SetMotor(claw, 0, false);
 }
 
