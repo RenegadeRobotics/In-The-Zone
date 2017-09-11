@@ -65,11 +65,11 @@ void DriveStraight(int clicks, int power){
 
 void changeClaw (int direction){
 	if (direction == 1) { // 1 = open
-		SetMotor (claw,50,false);
+		SetMotor (claw,80,false);
 	}
 
 	else {
-		SetMotor (claw,-50,false);
+		SetMotor (claw,-80,false);
 	}
 }
 
@@ -118,6 +118,25 @@ void liftPOT (int power, int topPOTdest, int bottomPOTdest){
 }
 		}
 
+void lowerPOT (int power, int topPOTdest, int bottomPOTdest){
+	int runloop=1;
+	int topPOTvalue;
+	int bottomPOTvalue;
+	while (runloop==1){
+		//potentiometer values
+		topPOTvalue = SensorValue[topPOT];
+		bottomPOTvalue = SensorValue[bottomPOT];
+		if (topPOTvalue <= topPOTdest || bottomPOTvalue <= bottomPOTdest){
+			{
+				power = 0;
+				power = 0;
+				runloop=0;
+				}
+		}
+		SetMotor(bottomLift, power, false);
+			SetMotor(topLift, power, false);
+}
+		}
 
 void liftArm (int time, int power) {
 }
@@ -160,31 +179,80 @@ task autonomous()
 
 	// Remove this function call once you have "real" code.
 
+	//Drive forward
+	wait1Msec(100);
+  SetMotor(leftFront, 70, false);
+  SetMotor(rightFront, 70, false);
+  SetMotor(leftBack, 70, false);
+  SetMotor(rightBack, 70, false);
 
-	////Close Claw
+  wait1Msec(500);
 
+  SetMotor(leftFront, 0, false);
+  SetMotor(rightFront, 0, false);
+  SetMotor(leftBack, 0, false);
+  SetMotor(rightBack, 0, false);
+
+  wait1Msec(1000);
+
+  // Drive Backwards
+    SetMotor(leftFront, -70, false);
+  SetMotor(rightFront, -70, false);
+  SetMotor(leftBack, -70, false);
+  SetMotor(rightBack, -70, false);
+
+  wait1Msec(450);
+
+  SetMotor(leftFront, 0, false);
+  SetMotor(rightFront, 0, false);
+  SetMotor(leftBack, 0, false);
+  SetMotor(rightBack, 0, false);
+
+  wait1Msec(1000);
+
+	//Close Claw
 	changeClaw (0);
+  wait1Msec(1000);
 
-	////Open Claw
+	//Open Claw
 	changeClaw (1);
+  wait1Msec(1000);
 
-	////Close Claw
+	//Drive forwards
+  SetMotor(leftFront, 70, false);
+  SetMotor(rightFront, 70, false);
+  SetMotor(leftBack, 70, false);
+  SetMotor(rightBack, 70, false);
+
+  wait1Msec(300);
+
+  SetMotor(leftFront, 0, false);
+  SetMotor(rightFront, 0, false);
+  SetMotor(leftBack, 0, false);
+  SetMotor(rightBack, 0, false);
+
+  wait1Msec(1000);
+
+	//Close Claw
 	changeClaw(0);
+	wait1Msec(1000);
 
+	//Raise lift
+	liftPOT (127, 1400, 1300);
+	wait1Msec(1000);
 
-	///Raise lift
+	//Drive foward
+	DriveStraight (230,100);
+	wait1Msec(1000);
 
-	LiftPOT (127, 1822, 1792)
+	//Lower lift
+	lowerPOT(-90, 1000, 900);
+	wait1Msec(100);
 
-
-	///Drive foward
-
-	DriveStraight (553,100);
-
-	///Open claw
-
+	//Open claw
 	changeClaw (1);
-
+	changeClaw (1);
+	wait1Msec(100);
 }
 
 /*---------------------------------------------------------------------------*/
