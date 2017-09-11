@@ -69,6 +69,14 @@ void changeClaw (int direction){
 	else {
 		SetMotor (claw,-80,false);
 	}
+	wait1Msec(800);
+	if (direction == 1) { // 1 = open
+		SetMotor (claw,10,false);
+	}
+
+	else {
+		SetMotor (claw,-10,false);
+	}
 }
 
 void liftPOT (int power, int topPOTdest, int bottomPOTdest){
@@ -82,14 +90,13 @@ void liftPOT (int power, int topPOTdest, int bottomPOTdest){
 		if (topPOTvalue >= topPOTdest || bottomPOTvalue >= bottomPOTdest){
 			{
 				power = 0;
-				power = 0;
 				runloop=0;
-				}
+			}
 		}
 		SetMotor(bottomLift, power, false);
-			SetMotor(topLift, power, false);
+		SetMotor(topLift, power, false);
+	}
 }
-		}
 
 void lowerPOT (int power, int topPOTdest, int bottomPOTdest){
 	int runloop=1;
@@ -102,14 +109,13 @@ void lowerPOT (int power, int topPOTdest, int bottomPOTdest){
 		if (topPOTvalue <= topPOTdest || bottomPOTvalue <= bottomPOTdest){
 			{
 				power = 0;
-				power = 0;
 				runloop=0;
-				}
+			}
 		}
 		SetMotor(bottomLift, power, false);
-			SetMotor(topLift, power, false);
+		SetMotor(topLift, power, false);
+	}
 }
-		}
 
 
 void pre_auton()
@@ -137,7 +143,6 @@ void pre_auton()
 /*  This task is used to control your robot during the autonomous phase of   */
 /*  a VEX Competition.                                                       */
 /*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
 task autonomous()
@@ -145,88 +150,96 @@ task autonomous()
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable ();
 
-	// ..........................................................................
-	// Insert user code here.
-	// ..........................................................................
-
-	// Remove this function call once you have "real" code.
 
 	//Drive forward
 	wait1Msec(100);
-  SetMotor(leftFront, 70, false);
-  SetMotor(rightFront, 70, false);
-  SetMotor(leftBack, 70, false);
-  SetMotor(rightBack, 70, false);
+	SetMotor(leftFront, 70, false);
+	SetMotor(rightFront, 70, false);
+	SetMotor(leftBack, 70, false);
+	SetMotor(rightBack, 70, false);
 
-  wait1Msec(500);
+	wait1Msec(500);
 
-  SetMotor(leftFront, 0, false);
-  SetMotor(rightFront, 0, false);
-  SetMotor(leftBack, 0, false);
-  SetMotor(rightBack, 0, false);
+	SetMotor(leftFront, 0, false);
+	SetMotor(rightFront, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(rightBack, 0, false);
 
-  wait1Msec(1000);
+	wait1Msec(1000);
 
-  // Drive Backwards
-    SetMotor(leftFront, -70, false);
-  SetMotor(rightFront, -70, false);
-  SetMotor(leftBack, -70, false);
-  SetMotor(rightBack, -70, false);
+	// Drive Backwards
+	SetMotor(leftFront, -70, false);
+	SetMotor(rightFront, -70, false);
+	SetMotor(leftBack, -70, false);
+	SetMotor(rightBack, -70, false);
 
-  wait1Msec(450);
+	wait1Msec(427);
 
-  SetMotor(leftFront, 0, false);
-  SetMotor(rightFront, 0, false);
-  SetMotor(leftBack, 0, false);
-  SetMotor(rightBack, 0, false);
+	SetMotor(leftFront, 0, false);
+	SetMotor(rightFront, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(rightBack, 0, false);
 
-  wait1Msec(1000);
+	wait1Msec(1000);
 
 	//Close Claw
 	changeClaw (0);
-  wait1Msec(500);
-  SetMotor(claw,0,false);
+	wait1Msec(500);
+
 
 	//Open Claw
 	changeClaw (1);
-  wait1Msec(500);
-  SetMotor(claw,0,false);
+	wait1Msec(500);
 
 	//Drive forwards
-  SetMotor(leftFront, 70, false);
-  SetMotor(rightFront, 70, false);
-  SetMotor(leftBack, 70, false);
-  SetMotor(rightBack, 70, false);
+	SetMotor(leftFront, 70, false);
+	SetMotor(rightFront, 70, false);
+	SetMotor(leftBack, 70, false);
+	SetMotor(rightBack, 70, false);
 
-  wait1Msec(300);
+	wait1Msec(270);
 
-  SetMotor(leftFront, 0, false);
-  SetMotor(rightFront, 0, false);
-  SetMotor(leftBack, 0, false);
-  SetMotor(rightBack, 0, false);
+	SetMotor(leftFront, 0, false);
+	SetMotor(rightFront, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(rightBack, 0, false);
 
-  wait1Msec(1000);
+	wait1Msec(1000);
 
 	//Close Claw
 	changeClaw(0);
 	wait1Msec(1000);
 
 	//Raise lift
-	liftPOT (127, 1400, 1300);
+	liftPOT (127, 1500, 1400);
 	wait1Msec(1000);
 
 	//Drive foward
-	DriveStraight (230,100);
+	DriveStraight (220,100);
 	wait1Msec(1000);
-
 	//Lower lift
-	lowerPOT(-90, 1000, 900);
+	lowerPOT(-90, 1300, 1200);
 	wait1Msec(100);
 
 	//Open claw
 	changeClaw (1);
-	changeClaw (1);
 	wait1Msec(100);
+
+	SetMotor(claw, 0, false);
+
+	//DriveBackwards
+	SetMotor(leftBack, -127, false);
+	SetMotor(leftFront, -127, false);
+	SetMotor(rightBack, -127, false);
+	SetMotor(rightFront, -127, false);
+	wait1Msec(300);
+	SetMotor(claw, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(leftFront, 0, false);
+	SetMotor(rightBack, 0, false);
+	SetMotor(rightFront, 0, false);
+
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -236,7 +249,6 @@ task autonomous()
 /*  This task is used to control your robot during the user control phase of */
 /*  a VEX Competition.                                                       */
 /*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
 
@@ -259,8 +271,7 @@ task usercontrol(){
 	int topPOTvalue;
 	int bottomPOTvalue;
 	int maxPOTtop = 2222;
-	// int minPOTtop = 533;
-	// int minPOTbottom = 640;
+
 	int maxPOTbottom = 2176;
 
 	int topPower = 0;
@@ -271,7 +282,7 @@ task usercontrol(){
 #define DEADBAND 5
 
 	while (true){
-		/////////////////////////////////// CHASSIS
+		////////// Chassis //////////
 		leftpower = (vexRT[Ch3] + vexRT[Ch4]);
 		rightpower = (vexRT[Ch3] - vexRT[Ch4]);
 
@@ -318,10 +329,7 @@ task usercontrol(){
 			SetMotor(rightFront, 0, false);
 			SetMotor(rightBack, 0, false);
 		}
-
-		/////////////////////////////// CLAW
-		//clawOpen = 0;
-		//clawClose = 0;
+		////////// Claw //////////
 		clawOpen = vexRT[Btn6UXmtr2];
 		clawClose = vexRT[Btn6DXmtr2];
 
@@ -331,7 +339,7 @@ task usercontrol(){
 
 
 
-		//////////////////////////////// LIFT
+		////////// Lift //////////
 
 		//potentiometer values
 		topPOTvalue = SensorValue[topPOT];
@@ -349,7 +357,7 @@ task usercontrol(){
 			}
 		}
 		SetMotor(bottomLift, bottomPower, false);
-			SetMotor(topLift, topPower, false);
+		SetMotor(topLift, topPower, false);
 
-		}
 	}
+}
