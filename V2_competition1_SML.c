@@ -59,6 +59,7 @@ void DriveForTime (int power, int time) {
 /*void waitUntilQuadrature(int sensorChosen, int amountToGo){
 	int currentCount = SensorValue[sensorChosen];
 	int finalAmount = currentCount + amountToGo;
+
 	while( SensorValue[sensorChosen] <= finalAmount ) { wait1Msec(10);}
 }*/
 
@@ -105,6 +106,9 @@ void DriveForClicks(int encChosen, int amountToGo, int power){
 	}
 }*/
 
+
+// use an asterisk on direction variable below; makes it a pointer
+// this is the way you have to pass strings/characters to a function in RobotC
 void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direction){
 
 	// get initial sensor values
@@ -146,7 +150,7 @@ void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 		}
 	}
 
-	// after either top or bottom POT limit is hit, turn off motors
+	// after POT limit is hit, turn off motors
 	SetMotor(bottomLift, 0, false);
 	SetMotor(topLift, 0, false);
 }
@@ -291,6 +295,7 @@ task usercontrol(){
 
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable();
+
 	// chassis variables -------
 	int rightpower = 0;
 	int leftpower = 0;
@@ -305,8 +310,8 @@ task usercontrol(){
 	// lift variables --------
 	int topPOTvalue;
 	int bottomPOTvalue;
-	int maxPOTtop = 2222;
 
+	int maxPOTtop = 2222;
 	int maxPOTbottom = 2176;
 
 	int topPower = 0;
@@ -364,6 +369,8 @@ task usercontrol(){
 			SetMotor(rightFront, 0, false);
 			SetMotor(rightBack, 0, false);
 		}
+
+
 		////////// Claw //////////
 		clawOpen = vexRT[Btn6UXmtr2];
 		clawClose = vexRT[Btn6DXmtr2];
@@ -373,7 +380,6 @@ task usercontrol(){
 		else SetMotor(claw, 0, false);
 
 
-
 		////////// Lift //////////
 
 		//potentiometer values
@@ -381,7 +387,7 @@ task usercontrol(){
 		bottomPOTvalue = SensorValue[bottomPOT];
 
 
-		//LIFT
+		// lift to joystick
 		topPower = vexRT[Ch3Xmtr2];
 		bottomPower = vexRT[Ch3Xmtr2];
 
