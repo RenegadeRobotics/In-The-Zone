@@ -79,7 +79,7 @@ void DriveForClicks(int encChosen, int amountToGo, int power){
 
 // use an asterisk on direction variable below; makes it a pointer
 // this is the way you have to pass strings/characters to a function in RobotC
-void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direction){
+void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direction){
 
 	// get initial sensor values
 	int topPOTvalue = SensorValue[topPOT];
@@ -114,9 +114,8 @@ void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 			topPOTvalue = SensorValue[topPOT];
 			bottomPOTvalue = SensorValue[bottomPOT];
 
-			// add a small wait - it doesn't pay to keep checking the
-			// sensor value continuously
-			wait1Msec(50);
+			// add a small wait
+			wait1Msec(10);
 		}
 	}
 
@@ -168,6 +167,7 @@ task autonomous()
 {
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable ();
+	SmartMotorsAddPowerExtender(2,6,8);
 
 	// keep this wait statement here;
 	// program does not seem to run the first
@@ -187,7 +187,7 @@ task autonomous()
 
 	wait1Msec(500);
 
-	//Close Claw to pop it out from folded position
+	// Close Claw to pop it out from folded position
 	SetMotor(claw, -80, false);
 	wait1Msec(500);
 	SetMotor(claw, 0, false);
@@ -196,31 +196,34 @@ task autonomous()
 	// close direction to open direction
 	wait1Msec(100);
 
-	//Open Claw after it's flipped out
+	// Open Claw after it's flipped out
 	SetMotor(claw, 127, false);
-	wait1Msec(250);
+	// smallish wait here because when it's all the way open
+	// screw heads from the gusset get slightly stuck
+	// underneath the c-channel & makes it harder to close
+	wait1Msec(200);
+
 	// apply just enough power to hold the claw open
 	// but not so much that it stalls the motor
-	SetMotor(claw, 30, false);
+	SetMotor(claw, 20, false);
 
-	// Drive forward, 70 power / 270ms
+	// Drive forward, 70 power / 300ms
 	// moves back to where cone is
-	DriveForTime (70, 270);
+	DriveForTime (70,300);
 
 	wait1Msec(500);
 
-	//Close Claw to grab cone
+	// Close Claw to grab cone
 	SetMotor(claw, -80, false);
 	wait1Msec(500);
 	// apply a small amount of power to make sure claw
 	// stays closed, but not so much it will stall.
 	// need less power here because rubber bands help
 	// keep claw closed
-	SetMotor(claw, -20, false);
+	SetMotor(claw, -25, false);
 
 	//Raise lift: 127 power / bottomLimit 1500 / topLimit 1400
-	string liftDirection = "up";
-	liftUsingPOT (127, 1500, 1400, liftDirection);
+	LiftUsingPOT (127, 1500, 1400, "up");
 	wait1Msec(1000);
 
 	// Drive foward to tower
@@ -228,14 +231,18 @@ task autonomous()
 	DriveForClicks(backLeftENC, 220, 100);
 	wait1Msec(500);
 
-	//Lower lift: -90 power, bottomPOT limit 1300 / topPOT limit 1200
-	liftDirection = "down";
-	liftUsingPOT(-90, 1300, 1200, liftDirection);
+	// Lower lift: -40 power, bottomPOT limit 1300 / topPOT limit 1200
+	// use really low power & small change in POT levels
+	// because otherwise gravity adds too much "down"
+	LiftUsingPOT(-40, 1400, 1300, "down");
 
-	//Open claw to release cone
-	SetMotor(claw, -80, false);
+	// Open claw after lift is down
+	// OK to do this after lift is down because claw is hinged
+	// and will fold instead of break
+	SetMotor(claw, 100, false);
 	wait1Msec(500);
 	SetMotor(claw, 0, false);
+
 
 	// Drive backward, -127 power / 300ms
 	// to get away from tower
@@ -257,6 +264,8 @@ task usercontrol(){
 
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable();
+	SmartMotorsAddPowerExtender(2,6,8);
+
 
 	// chassis variables -------
 	int rightpower = 0;
@@ -338,7 +347,7 @@ task usercontrol(){
 		clawClose = vexRT[Btn6DXmtr2];
 
 		if(clawClose == 1) SetMotor(claw, -100, false);
-		else if( clawOpen == 1 ) SetMotor(claw, 100, false);
+		else if(clawOpen == 1) SetMotor(claw, 100, false);
 		else SetMotor(claw, 0, false);
 
 
