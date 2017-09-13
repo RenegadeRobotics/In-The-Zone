@@ -139,7 +139,6 @@ void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 
 void pre_auton()
 {
-
 	SmartMotorsInit();
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
 	// running between Autonomous and Driver controlled modes. You will need to
