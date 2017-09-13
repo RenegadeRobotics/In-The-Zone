@@ -32,6 +32,101 @@
 #pragma systemFile
 
 /*---------------------------------------------------------------------------*/
+/*                     Renegade Autonomous Functions                         */
+/*---------------------------------------------------------------------------*/
+
+void DriveForTime (int power, int time) {
+	SetMotor(leftFront, power, false);
+	SetMotor(rightFront, power, false);
+	SetMotor(leftBack, power, false);
+	SetMotor(rightBack, power, false);
+
+	wait1Msec(time);
+
+	SetMotor(leftFront, 0, false);
+	SetMotor(rightFront, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(rightBack, 0, false);
+}
+
+
+void DriveForClicks(int encChosen, int amountToGo, int power){
+
+	// get initial encoder clicks; calculate ending click value
+	// function uses relative values for encoder clicks instead of
+	// resetting enc to 0
+	int currentCount = SensorValue[encChosen];
+	int finalAmount = currentCount + amountToGo;
+
+	// turn on motors to desired power
+	SetMotor(rightBack, power, false);
+	SetMotor(rightFront, power, false);
+	SetMotor(leftBack, power, false);
+	SetMotor(leftFront, power, false);
+
+	// keep checking sensor value with tiny wait
+	// code will stay in this statement until clicks reached
+	while(SensorValue[encChosen] <= finalAmount) {
+		wait1Msec(20);
+	}
+
+	SetMotor(rightBack, 0, false);
+	SetMotor(rightFront, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(leftFront, 0, false);
+}
+
+
+// use an asterisk on direction variable below; makes it a pointer
+// this is the way you have to pass strings/characters to a function in RobotC
+void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direction){
+
+	// get initial sensor values
+	int topPOTvalue = SensorValue[topPOT];
+	int bottomPOTvalue = SensorValue[bottomPOT];
+
+	// turn on motors to desired power
+	SetMotor(bottomLift, power, false);
+	SetMotor(topLift, power, false);
+
+	if ( *direction == "up" ) {
+
+		// run this loop while both POTs are under our set limits
+		while (topPOTvalue <= topPOTlimit && bottomPOTvalue <= bottomPOTlimit){
+
+			//keep checking potentiometer values
+			topPOTvalue = SensorValue[topPOT];
+			bottomPOTvalue = SensorValue[bottomPOT];
+
+			// add a small wait - you don't have to check the
+			// sensor value all the time
+			wait1Msec(50);
+		}
+	}
+
+	// otherwise, the direction must be "down"
+	else {
+
+		// run this loop while both POTs are over our set limits
+		while (topPOTvalue >= topPOTlimit && bottomPOTvalue >= bottomPOTlimit){
+
+			//keep checking potentiometer values
+			topPOTvalue = SensorValue[topPOT];
+			bottomPOTvalue = SensorValue[bottomPOT];
+
+			// add a small wait
+			wait1Msec(10);
+		}
+	}
+
+	// after POT limit is hit, turn off motors
+	SetMotor(bottomLift, 0, false);
+	SetMotor(topLift, 0, false);
+}
+
+
+
+/*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
 /*                                                                           */
 /*  You may want to perform some actions before the competition starts.      */
@@ -40,83 +135,6 @@
 /*  function is only called once after the cortex has been powered on and    */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
-
-
-
-void waitUntilQuadrature(int sensorChosen, int amountToGo){
-	int currentCount = SensorValue[sensorChosen];
-	int finalAmount = currentCount + amountToGo;
-	while(SensorValue[sensorChosen] <= finalAmount) {wait1Msec(10);}
-}
-void DriveStraight(int clicks, int power){
-	SetMotor(rightBack, power, false);
-	SetMotor (rightFront, power, false);
-	SetMotor (leftBack, power, false);
-	SetMotor (leftFront, power, false);
-
-	waitUntilQuadrature(backLeftENC, clicks);
-	SetMotor(rightBack, 0, false);
-	SetMotor (rightFront, 0, false);
-	SetMotor (leftBack, 0, false);
-	SetMotor (leftFront, 0, false);
-}
-
-void changeClaw (int direction){
-	if (direction == 1) { // 1 = open
-		SetMotor (claw,80,false);
-	}
-
-	else {
-		SetMotor (claw,-80,false);
-	}
-	wait1Msec(800);
-	if (direction == 1) { // 1 = open
-		SetMotor (claw,10,false);
-	}
-
-	else {
-		SetMotor (claw,-10,false);
-	}
-}
-
-void liftPOT (int power, int topPOTdest, int bottomPOTdest){
-	int runloop=1;
-	int topPOTvalue;
-	int bottomPOTvalue;
-	while (runloop==1){
-		//potentiometer values
-		topPOTvalue = SensorValue[topPOT];
-		bottomPOTvalue = SensorValue[bottomPOT];
-		if (topPOTvalue >= topPOTdest || bottomPOTvalue >= bottomPOTdest){
-			{
-				power = 0;
-				runloop=0;
-			}
-		}
-		SetMotor(bottomLift, power, false);
-		SetMotor(topLift, power, false);
-	}
-}
-
-void lowerPOT (int power, int topPOTdest, int bottomPOTdest){
-	int runloop=1;
-	int topPOTvalue;
-	int bottomPOTvalue;
-	while (runloop==1){
-		//potentiometer values
-		topPOTvalue = SensorValue[topPOT];
-		bottomPOTvalue = SensorValue[bottomPOT];
-		if (topPOTvalue <= topPOTdest || bottomPOTvalue <= bottomPOTdest){
-			{
-				power = 0;
-				runloop=0;
-			}
-		}
-		SetMotor(bottomLift, power, false);
-		SetMotor(topLift, power, false);
-	}
-}
-
 
 void pre_auton()
 {
@@ -149,96 +167,86 @@ task autonomous()
 {
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable ();
+	SmartMotorsAddPowerExtender(2,6,8);
 
-
-	//Drive forward
+	// keep this wait statement here;
+	// program does not seem to run the first
+	// motor command without it
 	wait1Msec(100);
-	SetMotor(leftFront, 70, false);
-	SetMotor(rightFront, 70, false);
-	SetMotor(leftBack, 70, false);
-	SetMotor(rightBack, 70, false);
+
+
+	// Drive forward 70 power / 500ms
+	// pushes cone forward so claw will be able to reach it
+	DriveForTime (70, 500);
 
 	wait1Msec(500);
 
-	SetMotor(leftFront, 0, false);
-	SetMotor(rightFront, 0, false);
-	SetMotor(leftBack, 0, false);
-	SetMotor(rightBack, 0, false);
+	// Drive backward -70 power / 427ms
+	// moves backward to give claw some grabbing room
+	DriveForTime (-70, 427);
 
-	wait1Msec(1000);
-
-	// Drive Backwards
-	SetMotor(leftFront, -70, false);
-	SetMotor(rightFront, -70, false);
-	SetMotor(leftBack, -70, false);
-	SetMotor(rightBack, -70, false);
-
-	wait1Msec(427);
-
-	SetMotor(leftFront, 0, false);
-	SetMotor(rightFront, 0, false);
-	SetMotor(leftBack, 0, false);
-	SetMotor(rightBack, 0, false);
-
-	wait1Msec(1000);
-
-	//Close Claw
-	changeClaw (0);
 	wait1Msec(500);
 
-
-	//Open Claw
-	changeClaw (1);
+	// Close Claw to pop it out from folded position
+	SetMotor(claw, -80, false);
 	wait1Msec(500);
-
-	//Drive forwards
-	SetMotor(leftFront, 70, false);
-	SetMotor(rightFront, 70, false);
-	SetMotor(leftBack, 70, false);
-	SetMotor(rightBack, 70, false);
-
-	wait1Msec(270);
-
-	SetMotor(leftFront, 0, false);
-	SetMotor(rightFront, 0, false);
-	SetMotor(leftBack, 0, false);
-	SetMotor(rightBack, 0, false);
-
-	wait1Msec(1000);
-
-	//Close Claw
-	changeClaw(0);
-	wait1Msec(1000);
-
-	//Raise lift
-	liftPOT (127, 1500, 1400);
-	wait1Msec(1000);
-
-	//Drive foward
-	DriveStraight (220,100);
-	wait1Msec(1000);
-	//Lower lift
-	lowerPOT(-90, 1300, 1200);
-	wait1Msec(100);
-
-	//Open claw
-	changeClaw (1);
-	wait1Msec(100);
-
 	SetMotor(claw, 0, false);
 
-	//DriveBackwards
-	SetMotor(leftBack, -127, false);
-	SetMotor(leftFront, -127, false);
-	SetMotor(rightBack, -127, false);
-	SetMotor(rightFront, -127, false);
-	wait1Msec(300);
-	SetMotor(claw, 0, false);
-	SetMotor(leftBack, 0, false);
-	SetMotor(leftFront, 0, false);
-	SetMotor(rightBack, 0, false);
-	SetMotor(rightFront, 0, false);
+	// small wait to avoid stressing motors, going from
+	// close direction to open direction
+	wait1Msec(100);
 
+	// Open Claw after it's flipped out
+	SetMotor(claw, 127, false);
+	// smallish wait here because when it's all the way open
+	// screw heads from the gusset get slightly stuck
+	// underneath the c-channel & makes it harder to close
+	wait1Msec(200);
+
+	// apply just enough power to hold the claw open
+	// but not so much that it stalls the motor
+	SetMotor(claw, 20, false);
+
+	// Drive forward, 70 power / 300ms
+	// moves back to where cone is
+	DriveForTime (70,300);
+
+	wait1Msec(500);
+
+	// Close Claw to grab cone
+	SetMotor(claw, -80, false);
+	wait1Msec(500);
+	// apply a small amount of power to make sure claw
+	// stays closed, but not so much it will stall.
+	// need less power here because rubber bands help
+	// keep claw closed
+	SetMotor(claw, -25, false);
+
+	//Raise lift: 127 power / bottomLimit 1500 / topLimit 1400
+	LiftUsingPOT (127, 1500, 1400, "up");
+	wait1Msec(1000);
+
+	// Drive foward to tower
+	// use back left encoder to measure / 220 clicks / 100 power
+	DriveForClicks(backLeftENC, 220, 100);
+	wait1Msec(500);
+
+	// Lower lift: -40 power, bottomPOT limit 1300 / topPOT limit 1200
+	// use really low power & small change in POT levels
+	// because otherwise gravity adds too much "down"
+	LiftUsingPOT(-40, 1400, 1300, "down");
+
+	// Open claw after lift is down
+	// OK to do this after lift is down because claw is hinged
+	// and will fold instead of break
+	SetMotor(claw, 100, false);
+	wait1Msec(500);
+	SetMotor(claw, 0, false);
+
+
+	// Drive backward, -127 power / 300ms
+	// to get away from tower
+	DriveForTime (-127, 300);
 
 }
 
@@ -256,6 +264,9 @@ task usercontrol(){
 
 	SmartMotorRun();
 	SmartMotorPtcMonitorEnable();
+	SmartMotorsAddPowerExtender(2,6,8);
+
+
 	// chassis variables -------
 	int rightpower = 0;
 	int leftpower = 0;
@@ -270,16 +281,16 @@ task usercontrol(){
 	// lift variables --------
 	int topPOTvalue;
 	int bottomPOTvalue;
-	int maxPOTtop = 2222;
 
+	int maxPOTtop = 2222;
 	int maxPOTbottom = 2176;
 
 	int topPower = 0;
 	int bottomPower = 0;
 
 
-#define MAX_POWER 127
-#define DEADBAND 5
+	#define MAX_POWER 127
+	#define DEADBAND 5
 
 	while (true){
 		////////// Chassis //////////
@@ -329,14 +340,15 @@ task usercontrol(){
 			SetMotor(rightFront, 0, false);
 			SetMotor(rightBack, 0, false);
 		}
+
+
 		////////// Claw //////////
 		clawOpen = vexRT[Btn6UXmtr2];
 		clawClose = vexRT[Btn6DXmtr2];
 
 		if(clawClose == 1) SetMotor(claw, -100, false);
-		else if( clawOpen == 1 ) SetMotor(claw, 100, false);
+		else if(clawOpen == 1) SetMotor(claw, 100, false);
 		else SetMotor(claw, 0, false);
-
 
 
 		////////// Lift //////////
@@ -346,7 +358,7 @@ task usercontrol(){
 		bottomPOTvalue = SensorValue[bottomPOT];
 
 
-		//LIFT
+		// lift to joystick
 		topPower = vexRT[Ch3Xmtr2];
 		bottomPower = vexRT[Ch3Xmtr2];
 
