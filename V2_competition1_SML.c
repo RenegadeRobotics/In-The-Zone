@@ -32,13 +32,7 @@
 #pragma systemFile
 
 /*---------------------------------------------------------------------------*/
-/*                          Pre-Autonomous Functions                         */
-/*                                                                           */
-/*  You may want to perform some actions before the competition starts.      */
-/*  Do them in the following function.  You must return from this function   */
-/*  or the autonomous and usercontrol tasks will not be started.  This       */
-/*  function is only called once after the cortex has been powered on and    */
-/*  not every time that the robot is disabled.                               */
+/*                     Renegade Autonomous Functions                         */
 /*---------------------------------------------------------------------------*/
 
 void DriveForTime (int power, int time) {
@@ -53,15 +47,7 @@ void DriveForTime (int power, int time) {
 	SetMotor(rightFront, 0, false);
 	SetMotor(leftBack, 0, false);
 	SetMotor(rightBack, 0, false);
-
 }
-
-/*void waitUntilQuadrature(int sensorChosen, int amountToGo){
-	int currentCount = SensorValue[sensorChosen];
-	int finalAmount = currentCount + amountToGo;
-
-	while( SensorValue[sensorChosen] <= finalAmount ) { wait1Msec(10);}
-}*/
 
 
 void DriveForClicks(int encChosen, int amountToGo, int power){
@@ -74,37 +60,21 @@ void DriveForClicks(int encChosen, int amountToGo, int power){
 
 	// turn on motors to desired power
 	SetMotor(rightBack, power, false);
-	SetMotor (rightFront, power, false);
-	SetMotor (leftBack, power, false);
-	SetMotor (leftFront, power, false);
+	SetMotor(rightFront, power, false);
+	SetMotor(leftBack, power, false);
+	SetMotor(leftFront, power, false);
 
 	// keep checking sensor value with tiny wait
 	// code will stay in this statement until clicks reached
-	while(SensorValue[encChosen] <= finalAmount) {wait1Msec(20);}
+	while(SensorValue[encChosen] <= finalAmount) {
+		wait1Msec(20);
+	}
 
 	SetMotor(rightBack, 0, false);
-	SetMotor (rightFront, 0, false);
-	SetMotor (leftBack, 0, false);
-	SetMotor (leftFront, 0, false);
+	SetMotor(rightFront, 0, false);
+	SetMotor(leftBack, 0, false);
+	SetMotor(leftFront, 0, false);
 }
-
-/*void changeClaw (int direction){
-	if (direction == 1) { // 1 = open
-		SetMotor (claw,80,false);
-	}
-
-	else {
-		SetMotor (claw,-80,false);
-	}
-	wait1Msec(800);
-	if (direction == 1) { // 1 = open
-		SetMotor (claw,10,false);
-	}
-
-	else {
-		SetMotor (claw,-10,false);
-	}
-}*/
 
 
 // use an asterisk on direction variable below; makes it a pointer
@@ -128,7 +98,7 @@ void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 			topPOTvalue = SensorValue[topPOT];
 			bottomPOTvalue = SensorValue[bottomPOT];
 
-			// add a small wait; it doesn't pay to keep checking the
+			// add a small wait - you don't have to check the
 			// sensor value all the time
 			wait1Msec(50);
 		}
@@ -144,7 +114,7 @@ void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 			topPOTvalue = SensorValue[topPOT];
 			bottomPOTvalue = SensorValue[bottomPOT];
 
-			// add a small wait here; it doesn't pay to keep checking the
+			// add a small wait - it doesn't pay to keep checking the
 			// sensor value continuously
 			wait1Msec(50);
 		}
@@ -155,25 +125,17 @@ void liftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 	SetMotor(topLift, 0, false);
 }
 
-/*void lowerPOT (int power, int topPOTdest, int bottomPOTdest){
-	int runloop=1;
-	int topPOTvalue;
-	int bottomPOTvalue;
-	while (runloop==1){
-		//potentiometer values
-		topPOTvalue = SensorValue[topPOT];
-		bottomPOTvalue = SensorValue[bottomPOT];
-		if (topPOTvalue <= topPOTdest || bottomPOTvalue <= bottomPOTdest){
-			{
-				power = 0;
-				runloop=0;
-			}
-		}
-		SetMotor(bottomLift, power, false);
-		SetMotor(topLift, power, false);
-	}
-}
-*/
+
+
+/*---------------------------------------------------------------------------*/
+/*                          Pre-Autonomous Functions                         */
+/*                                                                           */
+/*  You may want to perform some actions before the competition starts.      */
+/*  Do them in the following function.  You must return from this function   */
+/*  or the autonomous and usercontrol tasks will not be started.  This       */
+/*  function is only called once after the cortex has been powered on and    */
+/*  not every time that the robot is disabled.                               */
+/*---------------------------------------------------------------------------*/
 
 void pre_auton()
 {
@@ -318,8 +280,8 @@ task usercontrol(){
 	int bottomPower = 0;
 
 
-#define MAX_POWER 127
-#define DEADBAND 5
+	#define MAX_POWER 127
+	#define DEADBAND 5
 
 	while (true){
 		////////// Chassis //////////
