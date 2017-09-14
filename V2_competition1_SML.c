@@ -139,11 +139,13 @@ void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 
 void pre_auton()
 {
-	SmartMotorsInit();
+
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
 	// running between Autonomous and Driver controlled modes. You will need to
 	// manage all user created tasks if set to false.
 	bStopTasksBetweenModes = false;
+	SmartMotorsInit();
+	SmartMotorRun();
 
 	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
 	// used by the competition include file, for example, you might want
@@ -224,8 +226,8 @@ task autonomous()
 	wait1Msec(1000);
 
 	// Drive foward to tower
-	// use back left encoder to measure / 220 clicks / 100 power
-	DriveForClicks(backLeftENC, 220, 100);
+	// use back left encoder to measure / 115 clicks / 100 power
+	DriveForClicks(backLeftENC, 115, 100);
 	wait1Msec(500);
 
 	// Lower lift: -40 power, bottomPOT limit 1300 / topPOT limit 1200
@@ -335,8 +337,8 @@ task usercontrol(){
 
 
 		////////// Claw //////////
-		clawOpen = vexRT[Btn6UXmtr2];
-		clawClose = vexRT[Btn6DXmtr2];
+		clawOpen = vexRT[Btn6DXmtr2];
+		clawClose = vexRT[Btn6UXmtr2];
 
 		if(clawClose == 1) SetMotor(claw, -100);
 		else if(clawOpen == 1) SetMotor(claw, 100);
