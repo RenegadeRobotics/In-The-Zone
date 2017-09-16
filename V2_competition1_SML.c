@@ -222,7 +222,7 @@ task autonomous()
 	SetMotor(claw, -25);
 
 	//Raise lift: 127 power / bottomLimit 1500 / topLimit 1400
-	LiftUsingPOT (127, 1500, 1400, "up");
+	LiftUsingPOT (127, 1700, 1600, "up");
 	wait1Msec(1000);
 
 	// Drive foward to tower
@@ -245,7 +245,7 @@ task autonomous()
 
 	// Drive backward, -127 power / 300ms
 	// to get away from tower
-	DriveForTime (-127, 300);
+	DriveForTime (-127, 240);
 
 }
 
