@@ -44,10 +44,17 @@ void DriveForTime (int power, int time) {
 
 	wait1Msec(time);
 
-	SetMotor(leftFront, 0);
+	SetMotor(leftFront, -10, true);
+	SetMotor(rightFront, -10, true);
+	SetMotor(leftBack, -10, true);
+	SetMotor(rightBack, -10, true);
+
+	wait1Msec (50);
+
+	SetMotor(rightBack,0);
 	SetMotor(rightFront, 0);
 	SetMotor(leftBack, 0);
-	SetMotor(rightBack, 0);
+	SetMotor(leftFront, 0);
 }
 
 
@@ -71,10 +78,18 @@ void DriveForClicks(int encChosen, int amountToGo, int power){
 		wait1Msec(20);
 	}
 
-	SetMotor(rightBack, 0);
+	SetMotor(rightBack, -10, true);
+	SetMotor(rightFront, -10, true);
+	SetMotor(leftBack, -10, true);
+	SetMotor(leftFront, -10, true);
+
+	wait1Msec(50);
+
+	SetMotor(rightBack,0);
 	SetMotor(rightFront, 0);
 	SetMotor(leftBack, 0);
 	SetMotor(leftFront, 0);
+
 }
 
 
