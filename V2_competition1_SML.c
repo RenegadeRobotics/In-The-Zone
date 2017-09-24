@@ -226,8 +226,8 @@ task autonomous()
 	wait1Msec(1000);
 
 	// Drive foward to tower
-	// use back left encoder to measure / 115 clicks / 100 power
-	DriveForClicks(backLeftENC, 115, 100);
+	// use back left encoder to measure / 50 clicks / 100 power
+	DriveForClicks(backLeftENC, 50, 100);
 	wait1Msec(500);
 
 	// Lower lift: -40 power, bottomPOT limit 1300 / topPOT limit 1200
