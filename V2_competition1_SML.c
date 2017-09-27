@@ -1,6 +1,8 @@
-#pragma config(Sensor, in1,    bottomPOT,      sensorPotentiometer)
+#pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
+#pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
+#pragma config(Sensor, in1,    bottomPOT,      sensorNone)
 #pragma config(Sensor, in2,    topPOT,         sensorPotentiometer)
-#pragma config(Sensor, dgtl2,  backRightENC,   sensorQuadEncoder)
+#pragma config(Sensor, dgtl1,  SonicSensor,    sensorSONAR_inch)
 #pragma config(Sensor, dgtl4,  backLeftENC,    sensorQuadEncoder)
 #pragma config(Motor,  port2,           rightBack,     tmotorServoContinuousRotation, openLoop, reversed, encoderPort, dgtl2)
 #pragma config(Motor,  port3,           rightFront,    tmotorServoContinuousRotation, openLoop, reversed)
@@ -169,6 +171,16 @@ void pre_auton()
 
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
+
+	clearLCDLine(0);
+	clearLCDLine(1);
+
+	while(1) {
+		string strSensorValue = SensorValue [SonicSensor];
+		displayLCDCenteredString (0,strSensorValue);
+
+
+}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -352,8 +364,8 @@ task usercontrol(){
 
 
 		////////// Claw //////////
-		clawOpen = vexRT[Btn6DXmtr2];
-		clawClose = vexRT[Btn6UXmtr2];
+		clawOpen = vexRT[Btn6D];
+		clawClose = vexRT[Btn6U];
 
 		if(clawClose == 1) SetMotor(claw, -100);
 		else if(clawOpen == 1) SetMotor(claw, 100);
