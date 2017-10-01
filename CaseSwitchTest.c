@@ -364,22 +364,33 @@ task usercontrol(){
 
 
 		////////// Claw //////////
-
-	if (vexRT[Btn5UXmtr2] == 1) {
-		clawPower = -20;
-	}
-	else if (vexRT[Btn6UXmtr2] == 1) {
-		clawPower = -100;
+	int clawVar;
+	if (vexRT[Btn6UXmtr2] == 1) {
+		clawVar = 1;
 	}
 	else if (vexRT[Btn6DXmtr2] == 1) {
-		clawPower = 100;
+		clawVar = 2;
 	}
 
+	else if (vexRT[Btn5UXmtr2] == 1) {
+		clawVar = 3;
 
+	}
 
-
-
-	else clawPower = 0;
+	switch(clawVar){
+		case 1:
+			clawPower = -100;
+			break;
+		case 2:
+			clawPower = 100;
+			break;
+		case 3:
+			clawPower = -20;
+			break;
+		default:
+			clawPower = 0;
+			break;
+	}
 
 		SetMotor (claw, clawPower);
 		////////// Lift //////////
