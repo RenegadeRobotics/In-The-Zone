@@ -143,7 +143,6 @@ void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 }
 
 
-
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
 /*                                                                           */
@@ -175,12 +174,12 @@ void pre_auton()
 	clearLCDLine(0);
 	clearLCDLine(1);
 
-	while(1) {
+	while(nVexRCReceiveState & vrDisabled) {
 		string strSensorValue = SensorValue [SonicSensor];
 		displayLCDCenteredString (0,strSensorValue);
 
 
-}
+	}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -287,6 +286,8 @@ task autonomous()
 
 
 task usercontrol(){
+	displayLCDCenteredString(0, "driver");
+
 
 	// chassis variables -------
 	int rightpower = 0;
@@ -296,8 +297,7 @@ task usercontrol(){
 	int inverseBtn = 0;
 
 	// claw variables -------
-	int clawOpen = 0;
-	int clawClose = 0;
+	int clawPower = 0;
 
 	// lift variables --------
 	int topPOTvalue;
@@ -364,14 +364,21 @@ task usercontrol(){
 
 
 		////////// Claw //////////
-		clawOpen = vexRT[Btn6D];
-		clawClose = vexRT[Btn6U];
+	if (vexRT[Btn6UXmtr2] == 1) {
+		clawPower = -100;
+	}
+	else if (vexRT[Btn6DXmtr2] == 1) {
+		clawPower = 100;
+	}
 
-		if(clawClose == 1) SetMotor(claw, -100);
-		else if(clawOpen == 1) SetMotor(claw, 100);
-		else SetMotor(claw, 0);
+	else if (vexRT[Btn5UXmtr2] == 1) {
+		clawPower = -20;
 
+	}
 
+	else clawPower = 0;
+
+		SetMotor (claw, clawPower);
 		////////// Lift //////////
 
 		//potentiometer values
