@@ -4,9 +4,8 @@
 #pragma config(Sensor, in2,    topPOT,         sensorPotentiometer)
 #pragma config(Sensor, dgtl1,  SonicSensor,    sensorSONAR_inch)
 #pragma config(Sensor, dgtl4,  backLeftENC,    sensorQuadEncoder)
-#pragma config(Motor,  port2,           rightBack,     tmotorServoContinuousRotation, openLoop, reversed, encoderPort, None)
+#pragma config(Motor,  port2,           rightBack,     tmotorServoContinuousRotation, openLoop, reversed, encoderPort, dgtl2)
 #pragma config(Motor,  port3,           rightFront,    tmotorServoContinuousRotation, openLoop, reversed)
-#pragma config(Motor,  port4,           MGflipper,     tmotorServoContinuousRotation, openLoop)
 #pragma config(Motor,  port5,           bottomLift,    tmotorServoContinuousRotation, openLoop, reversed)
 #pragma config(Motor,  port6,           topLift,       tmotorServoContinuousRotation, openLoop, reversed)
 #pragma config(Motor,  port7,           claw,          tmotorServoContinuousRotation, openLoop)
@@ -267,9 +266,7 @@ task autonomous()
 	// and will fold instead of break
 	SetMotor(claw, 100);
 	wait1Msec(500);
-
 	SetMotor(claw, 0);
-
 
 
 	// Drive backward, -127 power / 300ms
@@ -313,8 +310,8 @@ task usercontrol(){
 	int bottomPower = 0;
 
 
-#define MAX_POWER 127
-#define DEADBAND 5
+	#define MAX_POWER 127
+	#define DEADBAND 5
 
 	while (true){
 		////////// Chassis //////////
@@ -367,22 +364,33 @@ task usercontrol(){
 
 
 		////////// Claw //////////
+	int clawVar;
+	if (vexRT[Btn6UXmtr2] == 1) {
+		clawVar = 1;
+	}
+	else if (vexRT[Btn6DXmtr2] == 1) {
+		clawVar = 2;
+	}
 
-		if (vexRT[Btn5UXmtr2] == 1) {
-			clawPower = -20;
-		}
-		else if (vexRT[Btn6UXmtr2] == 1) {
+	else if (vexRT[Btn5UXmtr2] == 1) {
+		clawVar = 3;
+
+	}
+
+	switch(clawVar){
+		case 1:
 			clawPower = -100;
-		}
-		else if (vexRT[Btn6DXmtr2] == 1) {
+			break;
+		case 2:
 			clawPower = 100;
-		}
-
-
-
-
-
-		else clawPower = 0;
+			break;
+		case 3:
+			clawPower = -20;
+			break;
+		default:
+			clawPower = 0;
+			break;
+	}
 
 		SetMotor (claw, clawPower);
 		////////// Lift //////////
@@ -404,27 +412,6 @@ task usercontrol(){
 		}
 		SetMotor(bottomLift, bottomPower);
 		SetMotor(topLift, topPower);
-
-
-		int openFlipper;
-		openFlipper = vexRT[Btn8U];
-		int closeFlipper;
-		closeFlipper = vexRT[Btn8D];
-
-		int MGflipperPower = 0;
-
-		if (openFlipper == 1) {
-			MGflipperPower = -127;
-		}
-		if (closeFlipper == 1) {
-			MGflipperPower = 127;
-
-
-		}
-
-		SetMotor (MGflipper,MGflipperPower);
-
-
 
 	}
 }
