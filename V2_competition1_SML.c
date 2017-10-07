@@ -229,9 +229,9 @@ task autonomous()
 	// Open Claw after it's flipped out
 	SetMotor(claw, 127);
 
-	// Drive forward, 70 power / 300ms
+	// Drive forward, 70 power / 400ms
 	// moves back to where cone is
-	DriveForTime (70,300);
+	DriveForTime (70,400);
 
 	wait1Msec(500);
 
