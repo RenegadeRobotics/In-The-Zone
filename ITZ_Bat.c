@@ -4,7 +4,7 @@
 #pragma config(Sensor, in2,    topPOT,         sensorPotentiometer)
 #pragma config(Sensor, dgtl2,  backRightENC,   sensorQuadEncoder)
 #pragma config(Sensor, dgtl4,  backLeftENC,    sensorQuadEncoder)
-#pragma config(Sensor, dgtl10, SonicSensor,    sensorSONAR_inch)
+#pragma config(Sensor, dgtl10, SonicSensor,    sensorSONAR_mm)
 #pragma config(Motor,  port2,           rightBack,     tmotorServoContinuousRotation, openLoop, reversed, encoderPort, None)
 #pragma config(Motor,  port3,           rightFront,    tmotorServoContinuousRotation, openLoop, reversed)
 #pragma config(Motor,  port4,           MGflipper,     tmotorServoContinuousRotation, openLoop)
@@ -62,6 +62,34 @@ void DriveForTime (int power, int time) {
 	SetMotor(leftFront, 0);
 }
 
+void stopDriving(string *direction){
+	if(*direction=="forward"){
+	SetMotor(leftFront, -10, true);
+	SetMotor(rightFront, -10, true);
+	SetMotor(leftBack, -10, true);
+	SetMotor(rightBack, -10, true);
+
+	wait1Msec (50);
+	}
+	else{
+	SetMotor(leftFront, 10, true);
+	SetMotor(rightFront, 10, true);
+	SetMotor(leftBack, 10, true);
+	SetMotor(rightBack, 10, true);
+
+	wait1Msec (50);
+}
+
+	SetMotor(rightBack,0);
+	SetMotor(leftBack,0);
+	SetMotor(leftFront,0);
+	SetMotor(rightFront,0);
+
+
+
+
+}
+
 
 void DriveForClicks(int encChosen, int amountToGo, int power){
 
@@ -82,7 +110,6 @@ void DriveForClicks(int encChosen, int amountToGo, int power){
 	while(SensorValue[encChosen] <= finalAmount) {
 		wait1Msec(20);
 	}
-
 	SetMotor(rightBack, -10, true);
 	SetMotor(rightFront, -10, true);
 	SetMotor(leftBack, -10, true);
@@ -199,78 +226,64 @@ void pre_auton()
 
 task autonomous()
 {
-	bLCDBacklight=false;
+	int distance = 0;
+	distance=SensorValue[SonicSensor];
 
-	// keep this wait statement here;
-	// program does not seem to run the first
-	// motor command without it
-	wait1Msec(100);
+	while (distance <385){
+		SetMotor(leftBack,127);
+		SetMotor(rightBack,127);
+		SetMotor(leftFront,127);
+		SetMotor(rightFront,127);
+		distance=SensorValue[SonicSensor];
+		wait1Msec(20);
+	}
+	stopDriving("foward");
 
-
-	// Drive forward 70 power / 500ms
-	// pushes cone forward so claw will be able to reach it
-	DriveForTime (70, 500);
+	wait1Msec(500);
+	while (distance >140){
+		SetMotor(leftBack,-127);
+		SetMotor(rightBack,-127);
+		SetMotor(leftFront,-127);
+		SetMotor(rightFront,-127);
+		distance=SensorValue[SonicSensor];
+		wait1Msec(20);
+	}
+	stopDriving("backward");
 
 	wait1Msec(500);
 
-	// Drive backward -70 power / 380ms
-	// moves backward to give claw some grabbing room
-	DriveForTime (-70, 380);
-
+	while (distance <390){
+		SetMotor(leftBack,127);
+		SetMotor(rightBack,127);
+		SetMotor(leftFront,127);
+		SetMotor(rightFront,127);
+		distance=SensorValue[SonicSensor];
+		wait1Msec(20);
+	}
+	stopDriving("forward");
 	wait1Msec(500);
 
-
-	//Close claw to pop it out from folded position
-	setMotor(claw, -180);
+	while (distance <625){
+		SetMotor(leftBack,127);
+		SetMotor(rightBack,127);
+		SetMotor(leftFront,127);
+		SetMotor(rightFront,127);
+		distance=SensorValue[SonicSensor];
+		wait1Msec(20);
+	}
+	stopDriving("forward");
 	wait1Msec(500);
-	setMotor(claw, 0);
+	while (distance >615){
+		SetMotor(leftBack,-127);
+		SetMotor(rightBack,-127);
+		SetMotor(leftFront,-127);
+		SetMotor(rightFront,-127);
+		distance=SensorValue[SonicSensor];
+		wait1Msec(20);
+	}
+	stopDriving("backward");
 
 
-	// Open Claw after it's flipped out
-	SetMotor(claw, 127);
-
-	// Drive forward, 70 power / 400ms
-	// moves back to where cone is
-	DriveForTime (70,400);
-
-	wait1Msec(500);
-
-	// Close Claw to grab cone
-	SetMotor(claw, -80);
-	wait1Msec(500);
-	// apply a small amount of power to make sure claw
-	// stays closed, but not so much it will stall.
-
-	SetMotor(claw, -25);
-
-	//Raise lift: 127 power / bottomLimit 1500 / topLimit 1400
-	LiftUsingPOT (127, 1500, 1400, "up");
-	wait1Msec(1000);
-
-	// Drive foward to tower
-	// use back left encoder to measure / 220 clicks / 100 power
-	DriveForClicks(backRightENC, 180, 100);
-	wait1Msec(500);
-
-
-	// Lower lift: -40 power, bottomPOT limit 1400 / topPOT limit 1300
-	// use really low power & small change in POT levels
-	// because otherwise gravity adds too much "down"
-	LiftUsingPOT(-40, 1400, 1300, "down");
-
-	// Open claw after lift is down
-	// OK to do this after lift is down because claw is hinged
-	// and will fold instead of break
-	SetMotor(claw, 100);
-	wait1Msec(500);
-
-	SetMotor(claw, 0);
-
-p
-
-	// Drive backward, -127 power / 300ms
-	// to get away from tower
-	DriveForTime (-127, 300);
 
 }
 
