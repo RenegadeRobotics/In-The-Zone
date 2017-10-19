@@ -4,7 +4,8 @@
 #pragma config(Sensor, in2,    topPOT,         sensorPotentiometer)
 #pragma config(Sensor, dgtl2,  backRightENC,   sensorQuadEncoder)
 #pragma config(Sensor, dgtl4,  backLeftENC,    sensorQuadEncoder)
-#pragma config(Sensor, dgtl10, SonicSensor,    sensorSONAR_mm)
+#pragma config(Sensor, dgtl7,  SonicSensor,    sensorSONAR_mm)
+#pragma config(Sensor, dgtl10, Align,          sensorSONAR_inch)
 #pragma config(Motor,  port2,           rightBack,     tmotorServoContinuousRotation, openLoop, reversed, encoderPort, None)
 #pragma config(Motor,  port3,           rightFront,    tmotorServoContinuousRotation, openLoop, reversed)
 #pragma config(Motor,  port4,           MGflipper,     tmotorServoContinuousRotation, openLoop)
@@ -64,21 +65,21 @@ void DriveForTime (int power, int time) {
 
 void stopDriving(string *direction){
 	if(*direction=="forward"){
-	SetMotor(leftFront, -10, true);
-	SetMotor(rightFront, -10, true);
-	SetMotor(leftBack, -10, true);
-	SetMotor(rightBack, -10, true);
+		SetMotor(leftFront, -10, true);
+		SetMotor(rightFront, -10, true);
+		SetMotor(leftBack, -10, true);
+		SetMotor(rightBack, -10, true);
 
-	wait1Msec (50);
+		wait1Msec (50);
 	}
 	else{
-	SetMotor(leftFront, 10, true);
-	SetMotor(rightFront, 10, true);
-	SetMotor(leftBack, 10, true);
-	SetMotor(rightBack, 10, true);
+		SetMotor(leftFront, 10, true);
+		SetMotor(rightFront, 10, true);
+		SetMotor(leftBack, 10, true);
+		SetMotor(rightBack, 10, true);
 
-	wait1Msec (50);
-}
+		wait1Msec (50);
+	}
 
 	SetMotor(rightBack,0);
 	SetMotor(leftBack,0);
@@ -208,7 +209,7 @@ void pre_auton()
 	bLCDBacklight=true;
 
 	while(nVexRCReceiveState & vrDisabled) {
-		string strSensorValue = SensorValue [SonicSensor];
+		string strSensorValue = SensorValue [Align];
 		displayLCDCenteredString (0,strSensorValue);
 
 
@@ -226,6 +227,8 @@ void pre_auton()
 
 task autonomous()
 {
+	bLCDBacklight=false;
+
 	int distance = 0;
 	distance=SensorValue[SonicSensor];
 
@@ -253,15 +256,33 @@ task autonomous()
 	wait1Msec(500);
 
 	while (distance <390){
+
 		SetMotor(leftBack,127);
 		SetMotor(rightBack,127);
 		SetMotor(leftFront,127);
 		SetMotor(rightFront,127);
 		distance=SensorValue[SonicSensor];
 		wait1Msec(20);
+		while(distance >300&& distance<390){
+			SetMotor(leftBack,127);
+			SetMotor(rightBack,127);
+			SetMotor(leftFront,127);
+			SetMotor(rightFront,127);
+			SetMotor(claw,80);
+			distance=SensorValue[SonicSensor];
+			wait1Msec(20);
+		}
+
+
+
 	}
 	stopDriving("forward");
 	wait1Msec(500);
+	SetMotor(claw,-80);
+	wait1Msec(300);
+	SetMotor(claw,-20);
+	LiftUsingPOT (127, 1500, 1400, "up");
+
 
 	while (distance <625){
 		SetMotor(leftBack,127);
@@ -270,6 +291,9 @@ task autonomous()
 		SetMotor(rightFront,127);
 		distance=SensorValue[SonicSensor];
 		wait1Msec(20);
+
+
+
 	}
 	stopDriving("forward");
 	wait1Msec(500);
@@ -298,6 +322,9 @@ task autonomous()
 
 
 task usercontrol(){
+
+
+	bLCDBacklight=false;
 
 	// chassis variables -------
 	int rightpower = 0;
@@ -379,9 +406,9 @@ task usercontrol(){
 
 
 		////////// Claw //////////
-   // 5U hold
-	// 6U claw close
-	 // 6D claw open
+		// 5U hold
+		// 6U claw close
+		// 6D claw open
 		if (vexRT[Btn5UXmtr2] == 1) {
 			clawPower = -20;
 		}
@@ -397,7 +424,7 @@ task usercontrol(){
 
 		SetMotor (claw, clawPower);
 
-	////////// Lift //////////
+		////////// Lift //////////
 
 		//potentiometer values
 		topPOTvalue = SensorValue[topPOT];
