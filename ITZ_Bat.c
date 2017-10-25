@@ -41,42 +41,21 @@
 /*                     Renegade Autonomous Functions                         */
 /*---------------------------------------------------------------------------*/
 
-void DriveForTime (int power, int time) {
-	SetMotor(leftFront, power);
-	SetMotor(rightFront, power);
-	SetMotor(leftBack, power);
-	SetMotor(rightBack, power);
-
-	wait1Msec(time);
-
-	//put on the brakes for 50 milliseconds
-	SetMotor(leftFront, -10, true);
-	SetMotor(rightFront, -10, true);
-	SetMotor(leftBack, -10, true);
-	SetMotor(rightBack, -10, true);
-
-	wait1Msec (50);
-
-	SetMotor(rightBack,0);
-	SetMotor(rightFront, 0);
-	SetMotor(leftBack, 0);
-	SetMotor(leftFront, 0);
-}
 
 void stopDriving(string *direction){
 	if(*direction=="forward"){
-		SetMotor(leftFront, -10, true);
-		SetMotor(rightFront, -10, true);
-		SetMotor(leftBack, -10, true);
-		SetMotor(rightBack, -10, true);
+		SetMotor(leftFront, -30, true);
+		SetMotor(rightFront, -30, true);
+		SetMotor(leftBack, -30, true);
+		SetMotor(rightBack, -30, true);
 
 		wait1Msec (50);
 	}
 	else{
-		SetMotor(leftFront, 10, true);
-		SetMotor(rightFront, 10, true);
-		SetMotor(leftBack, 10, true);
-		SetMotor(rightBack, 10, true);
+		SetMotor(leftFront, 30, true);
+		SetMotor(rightFront, 30, true);
+		SetMotor(leftBack, 30, true);
+		SetMotor(rightBack, 30, true);
 
 		wait1Msec (50);
 	}
@@ -91,39 +70,6 @@ void stopDriving(string *direction){
 
 }
 
-
-void DriveForClicks(int encChosen, int amountToGo, int power){
-
-	// get initial encoder clicks; calculate ending click value
-	// function uses relative values for encoder clicks instead of
-	// resetting enc to 0
-	int currentCount = SensorValue[encChosen];
-	int finalAmount = currentCount + amountToGo;
-
-	// turn on motors to desired power
-	SetMotor(rightBack, power);
-	SetMotor(rightFront, power);
-	SetMotor(leftBack, power);
-	SetMotor(leftFront, power);
-
-	// keep checking sensor value with tiny wait
-	// code will stay in this statement until clicks reached
-	while(SensorValue[encChosen] <= finalAmount) {
-		wait1Msec(20);
-	}
-	SetMotor(rightBack, -10, true);
-	SetMotor(rightFront, -10, true);
-	SetMotor(leftBack, -10, true);
-	SetMotor(leftFront, -10, true);
-
-	wait1Msec(50);
-
-	SetMotor(rightBack,0);
-	SetMotor(rightFront, 0);
-	SetMotor(leftBack, 0);
-	SetMotor(leftFront, 0);
-
-}
 
 
 // use an asterisk on direction variable below; makes it a pointer
@@ -232,7 +178,8 @@ task autonomous()
 	int distance = 0;
 	distance=SensorValue[SonicSensor];
 
-	while (distance <385){
+	//push cone forward//
+	while (distance <345){
 		SetMotor(leftBack,127);
 		SetMotor(rightBack,127);
 		SetMotor(leftFront,127);
@@ -243,18 +190,27 @@ task autonomous()
 	stopDriving("foward");
 
 	wait1Msec(500);
-	while (distance >140){
+
+	//drive backwards to distance from the cone so claw can flip out
+	//claw flips out bc of inertia
+	while (distance >302){
 		SetMotor(leftBack,-127);
 		SetMotor(rightBack,-127);
 		SetMotor(leftFront,-127);
 		SetMotor(rightFront,-127);
-		distance=SensorValue[SonicSensor];
+
 		wait1Msec(20);
+		distance=SensorValue[SonicSensor];
 	}
+
+
 	stopDriving("backward");
 
-	wait1Msec(500);
+	wait1Msec(200);
 
+
+	//open claw
+	//drive forward to get cone
 	while (distance <390){
 
 		SetMotor(leftBack,127);
@@ -263,28 +219,27 @@ task autonomous()
 		SetMotor(rightFront,127);
 		distance=SensorValue[SonicSensor];
 		wait1Msec(20);
-		while(distance >300&& distance<390){
-			SetMotor(leftBack,127);
-			SetMotor(rightBack,127);
-			SetMotor(leftFront,127);
-			SetMotor(rightFront,127);
+		while(distance < 250){
 			SetMotor(claw,80);
 			distance=SensorValue[SonicSensor];
 			wait1Msec(20);
 		}
 
-
-
 	}
+
+	//stop driving
+	//close claw
+	//lift up claw (127 power, 1500 Top POT, 1400 bottom POT, up)
+
 	stopDriving("forward");
 	wait1Msec(500);
-	SetMotor(claw,-80);
+	SetMotor(claw,-100);
 	wait1Msec(300);
 	SetMotor(claw,-20);
 	LiftUsingPOT (127, 1500, 1400, "up");
 
-
-	while (distance <625){
+	//drive forward to goal
+	while (distance <550){
 		SetMotor(leftBack,127);
 		SetMotor(rightBack,127);
 		SetMotor(leftFront,127);
@@ -292,12 +247,21 @@ task autonomous()
 		distance=SensorValue[SonicSensor];
 		wait1Msec(20);
 
-
-
 	}
+
+	//stop driving forward
 	stopDriving("forward");
 	wait1Msec(500);
-	while (distance >615){
+
+	//move tower down with cone (-40 power, top POT 1400, bottom POT 1300, down)
+	//open claw
+	LiftUsingPOT (-40, 1400, 1300, "down");
+	SetMotor(claw, 80);
+	wait1Msec(500);
+	SetMotor(claw, 0);
+
+	// drive backward	to move away from tower after cone is on
+	while (distance >500){
 		SetMotor(leftBack,-127);
 		SetMotor(rightBack,-127);
 		SetMotor(leftFront,-127);
