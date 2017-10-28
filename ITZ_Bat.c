@@ -41,15 +41,16 @@
 /*                     Renegade Autonomous Functions                         */
 /*---------------------------------------------------------------------------*/
 
-
+// Auton robot brakes
 void stopDriving(string *direction){
-	if(*direction=="forward"){
+	if(*direction == "forward"){
+		//"true" makes it not slew
 		SetMotor(leftFront, -30, true);
 		SetMotor(rightFront, -30, true);
 		SetMotor(leftBack, -30, true);
 		SetMotor(rightBack, -30, true);
 
-		wait1Msec (50);
+		wait1Msec(25);
 	}
 	else{
 		SetMotor(leftFront, 30, true);
@@ -57,19 +58,15 @@ void stopDriving(string *direction){
 		SetMotor(leftBack, 30, true);
 		SetMotor(rightBack, 30, true);
 
-		wait1Msec (50);
+		wait1Msec(50);
 	}
 
-	SetMotor(rightBack,0);
-	SetMotor(leftBack,0);
-	SetMotor(leftFront,0);
-	SetMotor(rightFront,0);
-
-
-
+	SetMotor(rightBack, 0);
+	SetMotor(leftBack, 0);
+	SetMotor(leftFront, 0);
+	SetMotor(rightFront, 0);
 
 }
-
 
 
 // use an asterisk on direction variable below; makes it a pointer
@@ -84,18 +81,18 @@ void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 	SetMotor(bottomLift, power);
 	SetMotor(topLift, power);
 
-	if ( *direction == "up" ) {
+	if (*direction == "up") {
 
 		// run this loop while both POTs are under our set limits
 		while (topPOTvalue <= topPOTlimit && bottomPOTvalue <= bottomPOTlimit){
 
+			// add a small wait - you don't have to check the
+			// sensor value all the time
+			wait1Msec(20);
+
 			//keep checking potentiometer values
 			topPOTvalue = SensorValue[topPOT];
 			bottomPOTvalue = SensorValue[bottomPOT];
-
-			// add a small wait - you don't have to check the
-			// sensor value all the time
-			wait1Msec(50);
 		}
 	}
 
@@ -105,12 +102,12 @@ void LiftUsingPOT (int power, int topPOTlimit, int bottomPOTlimit, string *direc
 		// run this loop while both POTs are over our set limits
 		while (topPOTvalue >= topPOTlimit && bottomPOTvalue >= bottomPOTlimit){
 
+			// add a small wait
+			wait1Msec(20);
+
 			//keep checking potentiometer values
 			topPOTvalue = SensorValue[topPOT];
 			bottomPOTvalue = SensorValue[bottomPOT];
-
-			// add a small wait
-			wait1Msec(10);
 		}
 	}
 
@@ -148,11 +145,11 @@ void pre_auton()
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
 
-	//display ultrasonic sensor values for lining up
+	//display front ultrasonic sensor value for lining up
 	clearLCDLine(0);
 	clearLCDLine(1);
 
-	bLCDBacklight=true;
+	bLCDBacklight = true;
 
 	while(nVexRCReceiveState & vrDisabled) {
 		string strSensorValue = SensorValue [Align];
@@ -173,79 +170,102 @@ void pre_auton()
 
 task autonomous()
 {
-	bLCDBacklight=false;
+	bLCDBacklight = false;
 
-	int distance = 0;
-	distance=SensorValue[SonicSensor];
+	int distance;
+	distance = SensorValue[SonicSensor];
 
 	//push cone forward//
-	while (distance <345){
-		SetMotor(leftBack,127);
-		SetMotor(rightBack,127);
-		SetMotor(leftFront,127);
-		SetMotor(rightFront,127);
-		distance=SensorValue[SonicSensor];
-		wait1Msec(20);
-	}
-	stopDriving("foward");
+	while (distance < 300){
+		SetMotor(leftBack, 127);
+		SetMotor(rightBack, 127);
+		SetMotor(leftFront, 127);
+		SetMotor(rightFront, 127);
 
-	wait1Msec(500);
+		wait1Msec(20);
+		distance = SensorValue[SonicSensor];
+	}
+
+		//"true" makes it not slew
+		SetMotor(leftBack, 0, true);
+		SetMotor(rightBack, 0, true);
+		SetMotor(leftFront, 0, true);
+		SetMotor(rightFront, 0, true);
+
+		wait1Msec(500);
 
 	//drive backwards to distance from the cone so claw can flip out
 	//claw flips out bc of inertia
-	while (distance >302){
-		SetMotor(leftBack,-127);
-		SetMotor(rightBack,-127);
-		SetMotor(leftFront,-127);
-		SetMotor(rightFront,-127);
+	while (distance > 250){
+		//"true" makes it not slew
+		SetMotor(leftBack, -60, true);
+		SetMotor(rightBack, -60, true);
+		SetMotor(leftFront, -60, true);
+		SetMotor(rightFront, -60, true);
 
 		wait1Msec(20);
-		distance=SensorValue[SonicSensor];
+		distance = SensorValue[SonicSensor];
 	}
 
-
 	stopDriving("backward");
+	wait1Msec(500);
 
-	wait1Msec(200);
+	//up and down lift to pop out claw in case interta doesnt work
+	/*SetMotor (topLift, 80, true);
+	SetMotor(bottomLift, 180, true);
+	wait1Msec(400);
+	SetMotor(topLift, -80, true);
+	SetMotor(bottomLift, -80, true);
+	wait1Msec(600);
+	SetMotor(topLift, 0);
+	SetMotor(bottomLift, 0);
+	wait1Msec(1000);*/
 
 
-	//open claw
 	//drive forward to get cone
-	while (distance <390){
+	while (distance < 390){
+		SetMotor(leftBack, 60);
+		SetMotor(rightBack, 60);
+		SetMotor(leftFront, 60);
+		SetMotor(rightFront, 60);
 
-		SetMotor(leftBack,127);
-		SetMotor(rightBack,127);
-		SetMotor(leftFront,127);
-		SetMotor(rightFront,127);
-		distance=SensorValue[SonicSensor];
+		distance = SensorValue[SonicSensor];
 		wait1Msec(20);
+
+		//open claw
 		while(distance < 250){
-			SetMotor(claw,80);
-			distance=SensorValue[SonicSensor];
+			SetMotor(claw, 80);
 			wait1Msec(20);
+			distance = SensorValue[SonicSensor];
 		}
 
 	}
 
-	//stop driving
-	//close claw
-	//lift up claw (127 power, 1500 Top POT, 1400 bottom POT, up)
-
 	stopDriving("forward");
 	wait1Msec(500);
-	SetMotor(claw,-100);
-	wait1Msec(300);
-	SetMotor(claw,-20);
-	LiftUsingPOT (127, 1500, 1400, "up");
 
-	//drive forward to goal
-	while (distance <550){
-		SetMotor(leftBack,127);
-		SetMotor(rightBack,127);
-		SetMotor(leftFront,127);
-		SetMotor(rightFront,127);
-		distance=SensorValue[SonicSensor];
+
+	//close and hold claw
+	SetMotor(claw, -100);
+	wait1Msec(300);
+
+	SetMotor(claw, -20);
+	wait1Msec(1000);
+
+	//Raise lift (127 power, 1500 Top POT, 1400 bottom POT, up)
+	LiftUsingPOT (80, 1500, 1400, "up");
+	distance = SensorValue[SonicSensor];
+
+
+	//drive forward to tower
+	while (distance < 620){
+		SetMotor(leftBack, 60);
+		SetMotor(rightBack, 60);
+		SetMotor(leftFront, 60);
+		SetMotor(rightFront, 60);
+
 		wait1Msec(20);
+		distance = SensorValue[SonicSensor];
 
 	}
 
@@ -253,22 +273,25 @@ task autonomous()
 	stopDriving("forward");
 	wait1Msec(500);
 
-	//move tower down with cone (-40 power, top POT 1400, bottom POT 1300, down)
+	//move lift down with cone (-40 power, top POT 1400, bottom POT 1300, down)
 	//open claw
-	LiftUsingPOT (-40, 1400, 1300, "down");
+	LiftUsingPOT(-40, 1400, 1300, "down");
 	SetMotor(claw, 80);
 	wait1Msec(500);
 	SetMotor(claw, 0);
+	wait1Msec(500);
 
 	// drive backward	to move away from tower after cone is on
-	while (distance >500){
-		SetMotor(leftBack,-127);
-		SetMotor(rightBack,-127);
-		SetMotor(leftFront,-127);
-		SetMotor(rightFront,-127);
-		distance=SensorValue[SonicSensor];
+	while (distance > 500){
+		SetMotor(leftBack, -70);
+		SetMotor(rightBack, -70);
+		SetMotor(leftFront, -70);
+		SetMotor(rightFront, -70);
+
 		wait1Msec(20);
+		distance = SensorValue[SonicSensor];
 	}
+
 	stopDriving("backward");
 
 
@@ -288,7 +311,7 @@ task autonomous()
 task usercontrol(){
 
 
-	bLCDBacklight=false;
+	bLCDBacklight = false;
 
 	// chassis variables -------
 	int rightpower = 0;
@@ -386,7 +409,7 @@ task usercontrol(){
 		else clawPower = 0;
 
 
-		SetMotor (claw, clawPower);
+		SetMotor(claw, clawPower);
 
 		////////// Lift //////////
 
@@ -398,7 +421,7 @@ task usercontrol(){
 		// lift to joystick
 		topPower = vexRT[Ch3Xmtr2];
 		bottomPower = vexRT[Ch3Xmtr2];
-
+		// Limitrs how high the lift can go
 		if (topPOTvalue >= maxPOTtop || bottomPOTvalue >= maxPOTbottom){
 			if (vexRT[Ch3Xmtr2] > 0 ){
 				topPower = 0;
@@ -410,8 +433,8 @@ task usercontrol(){
 
 		////////////// Mobile Goal Flipper Buttons //////////////
 
-		openFlipper = vexRT[Btn8U];
-		closeFlipper = vexRT[Btn8D];
+		openFlipper = vexRT[Btn8D];
+		closeFlipper = vexRT[Btn8U];
 
 		if (openFlipper == 1) {
 			MGflipperPower = -127;
@@ -421,6 +444,6 @@ task usercontrol(){
 		}
 		else MGflipperPower = 0;
 
-		SetMotor (MGflipper,MGflipperPower);
+		SetMotor(MGflipper, MGflipperPower);
 	}
 }
