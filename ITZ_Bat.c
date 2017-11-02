@@ -176,7 +176,7 @@ task autonomous()
 	distance = SensorValue[SonicSensor];
 
 	//push cone forward//
-	while (distance < 300){
+	while (distance < 325){
 		SetMotor(leftBack, 127);
 		SetMotor(rightBack, 127);
 		SetMotor(leftFront, 127);
@@ -196,12 +196,12 @@ task autonomous()
 
 	//drive backwards to distance from the cone so claw can flip out
 	//claw flips out bc of inertia
-	while (distance > 250){
+	while (distance > 280){
 		//"true" makes it not slew
-		SetMotor(leftBack, -60, true);
-		SetMotor(rightBack, -60, true);
-		SetMotor(leftFront, -60, true);
-		SetMotor(rightFront, -60, true);
+		SetMotor(leftBack, -80, true);
+		SetMotor(rightBack, -80, true);
+		SetMotor(leftFront, -80, true);
+		SetMotor(rightFront, -80, true);
 
 		wait1Msec(20);
 		distance = SensorValue[SonicSensor];
@@ -211,15 +211,15 @@ task autonomous()
 	wait1Msec(500);
 
 	//up and down lift to pop out claw in case interta doesnt work
-	/*SetMotor (topLift, 80, true);
+	SetMotor (topLift, 80, true);
 	SetMotor(bottomLift, 180, true);
-	wait1Msec(400);
+	wait1Msec(150);
 	SetMotor(topLift, -80, true);
 	SetMotor(bottomLift, -80, true);
-	wait1Msec(600);
+	wait1Msec(250);
 	SetMotor(topLift, 0);
 	SetMotor(bottomLift, 0);
-	wait1Msec(1000);*/
+	wait1Msec(1000);
 
 
 	//drive forward to get cone
@@ -297,7 +297,6 @@ task autonomous()
 
 
 }
-
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
 /*                              User Control Task                            */
