@@ -207,7 +207,7 @@ void defaultAuton (){
 	distance = SensorValue[SonicSensor];
 
 	//push cone forward//
-	while (distance < 32.5){
+	while (distance < 30){
 		SetMotor(leftBack, 127);
 		SetMotor(rightBack, 127);
 		SetMotor(leftFront, 127);
@@ -226,7 +226,6 @@ void defaultAuton (){
 	wait1Msec(500);
 
 	//drive backwards to distance from the cone so claw can flip out
-	//claw flips out bc of inertia
 
 
 	SetMotor(leftBack, -80, true);
@@ -278,7 +277,7 @@ void defaultAuton (){
 
 
 	//drive forward to tower
-	while (distance < 62){
+	while (distance < 58){
 		SetMotor(leftBack, 60);
 		SetMotor(rightBack, 60);
 		SetMotor(leftFront, 60);
