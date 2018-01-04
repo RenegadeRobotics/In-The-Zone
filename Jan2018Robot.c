@@ -130,7 +130,7 @@ task usercontrol()
 		if(vexRT[Btn6D] == 1 && MGliftValue > -190){
 			MGliftPower = 90;
 		}
-		else if (vexRT[Btn6U] == 1 && MGliftValue < 1050){
+		else if (vexRT[Btn6U] == 1 && MGliftValue < 800){
 			MGliftPower = -90;
 		}
 		else{
