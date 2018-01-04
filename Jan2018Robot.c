@@ -154,7 +154,7 @@ task usercontrol()
 
 
 		// Arm
-		ConeArmValue = SensorValue[Arm];
+		/*ConeArmValue = SensorValue[Arm];
 		ConeArmPower = vexRT[Ch3Xmtr2];
 		if(ConeArmValue > -264 && ConeArmPower < 0){
 			ConeArmPower = 0;
@@ -163,7 +163,8 @@ task usercontrol()
 			ConeArmPower = 0;
 
 		}
-		setMotor(ConeArm,ConeArmPower);
+		setMotor(ConeArm,ConeArmPower);*/
+		setMotor(ConeArm,vexRT[Ch3Xmtr2];
 	}
 
 }
