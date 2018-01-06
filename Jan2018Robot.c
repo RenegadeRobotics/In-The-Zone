@@ -26,7 +26,8 @@
 
 //Main competition background code...do not modify!
 #include "Vex_Competition_Includes.c"
-
+#include "Libraries/AutonReplay.c"
+#pragma systemFile
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
 /*                                                                           */
@@ -39,6 +40,7 @@
 
 void pre_auton()
 {
+	clearDebugStream();
 	SensorValue[Arm] = 0;
 	SensorValue[MG] = 0;
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
@@ -88,6 +90,7 @@ task autonomous()
 task usercontrol()
 {
 	// User control code here, inside the loop
+AR_BEGINSegment();
 	// chassis variables -------
 	int rightpower = 0;
 	int leftpower = 0;
@@ -120,11 +123,15 @@ task usercontrol()
 
 		// set left side motors;
 		setMotor(FL, leftpower);
+		AR_GenerateMotorPower(FL,leftpower);
 		setMotor(BL, leftpower);
+		AR_GenerateMotorPower(BL,leftpower);
 
 		// set right side motors;
 		setMotor(FR, rightpower);
+		AR_GenerateMotorPower(FR,rightpower);
 		setMotor(BR, rightpower);
+		AR_GenerateMotorPower(BR,rightpower);
 
 
 		//MGLift
@@ -139,6 +146,7 @@ task usercontrol()
 			MGliftPower = 0;
 		}
 		setMotor(MGLift,MGliftPower);
+		AR_GenerateMotorPower(MGLift,MGliftPower);
 
 		if(vexRT[Btn5D] == 1){
 			if(SensorValue[MG] > 190){
@@ -172,17 +180,21 @@ task usercontrol()
 			MGpusherPower = 0;
 		}
 		setMotor(MGpusher,MGpusherPower);
+		AR_GenerateMotorPower(MGpusher,MGpusherpower);
 
 		//Rolly Intake
 		if(vexRT[Btn6UXmtr2] == 1){
 			setMotor(Roller, 80);
+			AR_GenerateMotorPower(Roller, 80);
 		}
 
 		else if (vexRT[Btn6DXmtr2] == 1){
 			setMotor(Roller, -80);
+			AR_GenerateMotorPower(Roller, -80);
 		}
 		else{
 			setMotor(Roller, 0);
+			AR_GenerateMotorPower(Roller,0);
 		}
 
 
@@ -192,12 +204,13 @@ task usercontrol()
 		if(ConeArmValue < -264 && ConeArmPower > 0){
 			ConeArmPower = 0;
 		}
-		if(ConeArmValue < 0 && ConeArmPower > 0){
+		if(ConeArmValue > 0 && ConeArmPower < 0){
 			ConeArmPower = 0;
 
 		}
 		setMotor(ConeArm,ConeArmPower);
-		setMotor(ConeArm,vexRT[Ch3Xmtr2]);
+		AR_GenerateMotorPower(ConeArm,ConeArmPower);
+		AR_ENDSegment();
 	}
 
 }
