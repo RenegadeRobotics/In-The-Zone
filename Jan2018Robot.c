@@ -5,7 +5,7 @@
 #pragma config(Motor,  port2,           BL,            tmotorVex393_MC29, openLoop, reversed, driveLeft)
 #pragma config(Motor,  port3,           BR,            tmotorVex393_MC29, openLoop, driveRight)
 #pragma config(Motor,  port4,           FL,            tmotorVex393_MC29, openLoop, reversed, driveLeft)
-#pragma config(Motor,  port5,           FR,            tmotorVex393_MC29, openLoop, driveRight)
+#pragma config(Motor,  port5,           FR,            tmotorVex393_MC29, openLoop, reversed, driveRight)
 #pragma config(Motor,  port6,           MGLift,        tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port7,           ConeArm,       tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port8,           Roller,        tmotorVex393_MC29, openLoop)
