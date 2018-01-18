@@ -114,11 +114,11 @@ task autonomous()
 	wait1Msec(20);
 
 	//drive backward to get mobile goal
-	while (SensorValue[rtBack] < 1850){
-		SetMotor (FR, -80);
-		SetMotor (FL, -80);
-		SetMotor (BR, -80);
-		SetMotor (BL, -80);
+	while (SensorValue[rtBack] < 1200){
+		SetMotor (FR, -60);
+		SetMotor (FL, -60);
+		SetMotor (BR, -60);
+		SetMotor (BL, -60);
 		wait1Msec(20);
 	}
 	SetMotor (FR, 0);
@@ -127,7 +127,7 @@ task autonomous()
 	SetMotor (BL, 0);
 
 
-	//move MG picker upper up
+	/*//move MG picker upper up
 	while (SensorValue[MG] < 800){
 		SetMotor(MGLift,-90);
 		wait1Msec(20);
@@ -162,7 +162,6 @@ task autonomous()
 	wait1Msec(50);
 
 	// Turn in 5-point zone
-		SetMotor (BR, 80);
 	SetMotor (FR, 80);
 	SetMotor (FL, -80);
 	SetMotor (BR, 80);
@@ -205,7 +204,7 @@ task autonomous()
 	SetMotor (FL, 0);
 	SetMotor (BR, 0);
 	SetMotor (BL, 0);
-
+*/
 }
 
 
