@@ -162,7 +162,6 @@ task autonomous()
 	wait1Msec(50);
 
 	// Turn in 5-point zone
-		SetMotor (BR, 80);
 	SetMotor (FR, 80);
 	SetMotor (FL, -80);
 	SetMotor (BR, 80);
