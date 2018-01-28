@@ -46,40 +46,47 @@ void driveFunc(int rightPower, int leftPower){
 	SetMotor (BL, leftPower);
 }
 
-// Setting MG Lift into task so that it will continually run even with chassis
-int MGliftPower = 0;
-int MGliftValue;
+void encDriving(int power, int encClicks){
+	SensorValue[rtBack] = 0;
+	SensorValue[ltBack] = 0;
 
+	driveFunc(power,power);
+
+
+	while(encAve < encClicks){
+
+	}
+	driveFunc(0,0);
+}
+
+
+// Setting MG Lift joystick buttons
+// into task so that it will allow chassis to run at same time
+int MGliftPower = 0;
 task MGLiftTask(){
 	while(true){
-		MGliftValue = SensorValue[MG];
-		if(vexRT[Btn6DXmtr2] == 1 && MGliftValue > -190){
-			MGliftPower = 90;
-		}
-		else if (vexRT[Btn6UXmtr2] == 1 && MGliftValue < 1100){
-			MGliftPower = -50;
-		}
-		else{
-			MGliftPower = 0;
-		}
-		SetMotor(MGLift,MGliftPower);
+		// set up & down buttons
+		MGliftPower = (vexRT[Btn6DXmtr2] - vexRT[Btn6UXmtr2]) * 90;
+		SetMotor(MGLift, MGliftPower);
 
-		// MG lift - move to bottom button
+		// MG lift - move-to-bottom button
 		if(vexRT[Btn8DXmtr2] == 1){
 			if(SensorValue[MG] > 190){
-				while (SensorValue[MG] > 600){
-					SetMotor(MGLift,90);
+				while(SensorValue[MG] > 600){
+					SetMotor(MGLift, 90);
 					wait1Msec(20);
 				}
-				SetMotor(MGLift,0);
+				SetMotor(MGLift, 0);
 			}
 
 			else{
-				while (SensorValue[MG] < 250){
-					SetMotor(MGLift,-50);
+				while(SensorValue[MG] < 250){
+					SetMotor(MGLift, -50);
 					wait1Msec(20);
 				}
-				SetMotor(MGLift,0);
+				SetMotor(MGLift, 0);
+
+
 
 			}
 
@@ -139,21 +146,24 @@ void pre_auton()
 task autonomous()
 {
 	startTask(encAvgTask);
-	//move backward to distance self from cone at 40 power and stop
-	driveFunc(-90,-90);
-	wait1Msec(175);
-	driveFunc(0,0);
+
+	//move backward to distance self from cone and stop
+	driveFunc(-90, -90);
+	wait1Msec(150);
+	driveFunc(0, 0);
 	wait1Msec(20);
 
 	//pick up cone(arm down, and roll intake)
-	while (SensorValue[Arm] > -264){
+	clearTimer(T1);
+	int killTimer = 2500;
+	while ((SensorValue[Arm] > -264) && (time1[T1] < killTimer)){
 		SetMotor(ConeArm, -90);
 		wait1Msec(20);
 	}
 	SetMotor (ConeArm, 0);
 
-	SetMotor (Roller, 80);
-	wait1Msec(500);
+	SetMotor (Roller, 127);
+	wait1Msec(600);
 	SetMotor (Roller, 20);
 
 
@@ -166,22 +176,18 @@ task autonomous()
 
 	// move MG to lowest level
 	while (SensorValue[MG] < 250){
-		SetMotor(MGLift,-50);
+		SetMotor(MGLift, -50);
 		wait1Msec(20);
 	}
 	SetMotor(MGLift, 0);
 	wait1Msec(20);
 
 	//drive backward to get mobile goal
-	while (encAve < 600){
-		driveFunc(-60,-60);
-		wait1Msec(20);
-	}
-	driveFunc(0,0);
+	encDriving(-60,1550);
 
 	//move MG picker upper up
 	while (SensorValue[MG] < 800){
-		SetMotor(MGLift,-90);
+		SetMotor(MGLift, -90);
 		wait1Msec(20);
 	}
 	SetMotor(MGLift,0);
@@ -189,7 +195,7 @@ task autonomous()
 
 	// place cone on mobile goal
 	clearTimer(T1);
-	int killTimer = 1500;
+	killTimer = 1500;
 	while ((SensorValue[Arm] < -29) && (time1[T1] < killTimer)){
 		SetMotor(ConeArm, 25);
 		wait1Msec(20);
@@ -200,18 +206,55 @@ task autonomous()
 	wait1Msec(20);
 
 	// Turn after picking up mobile goal to face zone
-	driveFunc(-80,80);
+	//180 degrees
+	driveFunc(-80, 80);
 	wait1Msec(1200);
 
-	driveFunc(0,0);
+	driveFunc(0, 0);
 	wait1Msec(50);
 
-	// drive back to 5-point zone bar
-	while (SensorValue[rtBack] > 1200){
-		driveFunc(80,80);
-		wait1Msec(20);
-	}
-	driveFunc(0,0);
+	//hold MGLift up
+	setMotor(MGLift, -60);
+	wait1Msec(20);
+
+	/*DRIVE FORWARD
+	encDriving(-127,400); */
+
+	//drive forward
+	driveFunc(-80, -80);
+	wait1Msec(725);
+
+	driveFunc(0, 0);
+	wait1Msec(50);
+
+	//turn zigzag #1
+	driveFunc(-80, 80);
+	wait1Msec(750);
+
+	driveFunc(0, 0);
+	wait1Msec(50);
+
+	//straight #2
+	encDriving(-127,800);
+
+	// MGLift, lift up higher
+	SetMotor(MGLift, -90);
+
+	//turn zig zag #2
+	driveFunc(80, -80);
+	wait1Msec(750);
+
+	driveFunc(0, 0);
+	wait1Msec(50);
+
+	//drive to 20 point zone
+	encDriving(-127,2000);
+
+	setMotor(MGLift, 0);
+	wait1Msec(50);
+
+	//turn off MGLift
+	setMotor(MGLift, 0);
 	wait1Msec(50);
 
 	//rolly outake lift up arm
@@ -225,17 +268,28 @@ task autonomous()
 	SetMotor (Roller, 0);
 	wait1Msec(50);
 
+	//MGpusher to push cone off MG
+	SetMotor (MGpusher, 127);
+	wait1Msec(1500);
 
-	//lower MG
-	while (SensorValue[MG] > 450){
-		SetMotor(MGLift,90);
-		wait1Msec(20);
-	}
-	SetMotor(MGLift, 0);
+	SetMotor (MGpusher, 0);
+
+	// drive forward to ensure cone and MG go over
+	driveFunc(-127, -127);
+	wait1Msec(500);
 
 	// drive away
-	driveFunc(127,127);
+	driveFunc(127, 127);
 	wait1Msec(500);
+
+	driveFunc(0, 0);
+
+	//drive diagonally
+	driveFunc(127,60);
+	wait1Msec(2000);
+
+	driveFunc(127,127);
+	wait1Msec(2000);
 
 	driveFunc(0,0);
 
@@ -309,7 +363,9 @@ task usercontrol()
 
 
 
-
+		// DISABLED ROLLER FOR DRIVER SKILLS
+		// SINCE NOT PICKING UP CONES, and MG
+		// CONTROL NOW ON PARTNER
 		//Rolly Intake
 		/*if(vexRT[Btn6UXmtr2] == 1){
 		SetMotor(Roller, 80);
@@ -320,7 +376,11 @@ task usercontrol()
 		}
 		else{
 		SetMotor(Roller, 0);
-		} */
+		}*/
+
+
+		// new roller button code
+		// MGliftPower = (vexRT[Btn6UXmtr2] - vexRT[Btn6DXmtr2]) * 80;
 
 
 		// Arm
