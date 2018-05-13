@@ -4,7 +4,6 @@
 #pragma config(Sensor, in2,    topPOT,         sensorPotentiometer)
 #pragma config(Sensor, dgtl2,  backLeftENC,    sensorQuadEncoder)
 #pragma config(Sensor, dgtl5,  backRightENC,   sensorQuadEncoder)
-#pragma config(Sensor, dgtl7,  SonicSensor,    sensorSONAR_cm)
 #pragma config(Sensor, dgtl10, Align,          sensorSONAR_cm)
 #pragma config(Motor,  port2,           rightBack,     tmotorVex393_MC29, openLoop, reversed, encoderPort, dgtl5)
 #pragma config(Motor,  port3,           rightFront,    tmotorVex393_MC29, openLoop, reversed, encoderPort, dgtl5)
@@ -41,33 +40,117 @@
 /*                     Renegade Autonomous Functions                         */
 /*---------------------------------------------------------------------------*/
 
-// Auton robot brakes
-void stopDriving(string *direction){
-	if (*direction == "forward"){
-		//"true" makes it not slew
-		SetMotor(leftFront, -30, true);
-		SetMotor(rightFront, -30, true);
-		SetMotor(leftBack, -30, true);
-		SetMotor(rightBack, -30, true);
+//LCD Variable
+int Program = 1;
 
-		wait1Msec(25);
-	}
-	else {
-		SetMotor(leftFront, 30, true);
-		SetMotor(rightFront, 30, true);
-		SetMotor(leftBack, 30, true);
-		SetMotor(rightBack, 30, true);
+int clicksToGo;
+float rampingPowerAmount;
 
-		wait1Msec(50);
-	}
+//Change values here:
+//Be sure to have float as deciaml
+float rampUpClicks = 300.0;
+float rampDownClicks = 150.0;
 
-	SetMotor(rightBack, 0);
-	SetMotor(leftBack, 0);
-	SetMotor(leftFront, 0);
-	SetMotor(rightFront, 0);
+//The lowest value that moves the robot
+float minToMove = 25.0;
 
+int useThisforRightPower;
+int useThisforLeftPower;
+int leftAbs;
+
+int error;
+int integral;
+int derivative;
+int lastError;
+
+float Kp = 1.5;
+float Ki = 0.1;
+float Kd = 0.05;
+
+//Drive Function
+void driveFunc(int leftPower, int rightPower){
+	SetMotor (rightFront, rightPower);
+	SetMotor (leftFront, leftPower);
+	SetMotor (rightBack, rightPower);
+	SetMotor (leftBack, leftPower);
+}
+// Reset everything
+void resetEverything () {
+	SensorValue[backRightENC] = 0;
+	SensorValue[backLeftENC] = 0;
+
+	clicksToGo = 0;
+	rampingPowerAmount = 0;
+	useThisforRightPower = 0;
+	useThisforLeftPower = 0;
+	leftAbs = 0;
+
+	error = 0;
+	integral = 0;
+	derivative = 0;
+	lastError = 0;
 }
 
+//PID Driving
+void encDriving(int Lpower, int targetClicks){
+
+	resetEverything();
+	rampingPowerAmount = abs(Lpower) - minToMove;
+
+	while(abs(SensorValue[backLeftENC]) < targetClicks){
+
+		//Set variables
+		leftAbs = abs(SensorValue[backLeftENC]);
+		clicksToGo = targetClicks - leftAbs;
+
+		//Ramp up
+		if (leftAbs < rampUpClicks){
+			useThisforLeftPower = ((rampingPowerAmount / rampUpClicks) *
+			leftAbs + minToMove) * sgn(Lpower);
+		}
+		//Ramp Down
+		else if(clicksToGo < rampDownClicks){
+			useThisforLeftPower = ((rampingPowerAmount / rampDownClicks) *
+			clicksToGo + minToMove) * sgn(Lpower);
+		}
+		//Drive at Lpower. Use abs to allow negatives
+		else {
+			useThisforLeftPower = Lpower;
+		}
+
+		//Match the sides
+		error = SensorValue[backLeftENC] - SensorValue[backRightENC];
+		integral = integral + error;
+		derivative = error - lastError;
+		lastError = error;
+
+		// sgn makes the sign match the origional function call
+		useThisforRightPower = useThisforLeftPower + error * Kp +
+		integral * Ki + derivative * Kd;
+
+
+		driveFunc(useThisforLeftPower, useThisforRightPower);
+		wait1Msec(20);
+
+		//Get these values to graph
+		datalogDataGroupStart();
+		datalogAddValue( 0, error);
+		datalogAddValue( 1, integral);
+		datalogAddValue( 2, SensorValue[backLeftENC]);
+		datalogAddValue( 3, SensorValue[backRightENC]);
+		datalogAddValue( 4, useThisforLeftPower );
+		datalogAddValue( 5, useThisforRightPower );
+		datalogDataGroupEnd();
+
+	}
+
+	// put on the brakes
+	driveFunc(-15, -15);
+	wait1Msec(100);
+
+	// stop
+	driveFunc(0,0);
+}
 
 // use an asterisk on direction variable below; makes it a pointer
 // this is the way you have to pass strings/characters to a function in RobotC
@@ -117,131 +200,30 @@ void LiftUsingPOT (int power, int topPOTlimit, string *direction, int killSwitch
 	SetMotor(topLift, 0);
 }
 
-
-
-
-
-
-//PRE-AUTON FUNCTIONS/////////////////////
-//LCD selector
-
-//THIS IS THE VARIABLE THAT RUNS AUTON!
-int auton = 0;
-
-
-//ADD all autonomous choices
-void displayAuton(){
-	clearLCDLine(0);
-	clearLCDLine(1);
-	switch(auton){
-
-	case 1://no auton
-		displayLCDCenteredString(0, "no auton");
-		break;
-
-	case -1://sensor values
-		break;
-
-	default://auton
-		displayLCDCenteredString(0, "autonomous");
-		break;
-	}
-}
-
-
-
-task LCDControl() {
-
-	bLCDBacklight = true;
-	clearLCDLine(0);
-	clearLCDLine(1);
-	bool noButtonsPressed = true;
-	displayAuton();
-
-	while (true){
-		if (auton == -1){
-			clearLCDLine(0);
-			clearLCDLine(1);
-			displayLCDNumber(0, 0,SensorValue[Align], -1);
-			displayLCDNumber(1, 0,SensorValue[SonicSensor], -1);
-		}
-
-		if (noButtonsPressed){ // only update auton if a button is pressed AND wasn't pressed previously
-			switch(nLCDButtons){
-
-			case kButtonLeft:
-				auton--;
-				if (auton < -1){
-					auton = 1;
-				}
-				displayAuton();
-				break;
-
-			case kButtonCenter:
-				displayLCDCenteredString(0, "Chosen");
-				break;
-
-			case kButtonRight:
-				auton++;
-				if (auton>1){
-					auton=-1;
-				}
-				displayAuton();
-				break;
-			}
-		}
-		noButtonsPressed = !nLCDButtons; //update if there is a button currently pressed
-		wait1Msec(20);
-	}
-
-}
-
-
-
-
 ///////////////////////////THIS IS OUR DEFAULT AUTON//////////
 void defaultAuton (){
-	bLCDBacklight = false;
 
-	int distance;
-	distance = SensorValue[SonicSensor];
+// Raise arm and claw to above the cone
+// so it can flip out and not flop onto the cone
+		//Raise lift (80 power, 1500 Top POT, up, 6000(6 sec) kill time)
+	LiftUsingPOT(80, 800, "up",2000);
 
-	//push cone forward//
-	while (distance < 32.5){
-		SetMotor(leftBack, 127);
-		SetMotor(rightBack, 127);
-		SetMotor(leftFront, 127);
-		SetMotor(rightFront, 127);
+	//push cone forward
+	driveFunc(40,40);
+	wait1Msec(800);
+	driveFunc(0,0);
 
-		wait1Msec(20);
-		distance = SensorValue[SonicSensor];
-	}
+	//drive backwards to distance from the cone so arm can come down
+	driveFunc(-40,-40);
+	wait1Msec(750);
+	driveFunc(0,0);
 
-	//"true" makes it not slew
-	SetMotor(leftBack, 0, true);
-	SetMotor(rightBack, 0, true);
-	SetMotor(leftFront, 0, true);
-	SetMotor(rightFront, 0, true);
-
-	wait1Msec(500);
-
-	//drive backwards to distance from the cone so claw can flip out
-	//claw flips out bc of inertia
-
-
-	SetMotor(leftBack, -80, true);
-	SetMotor(rightBack, -80, true);
-	SetMotor(leftFront, -80, true);
-	SetMotor(rightFront, -80, true);
-
-	wait1Msec(500);
-	stopDriving("backward");
-	wait1Msec(500);
-
+	//lower lift (80 power, 1500 Top POT, up, 6000(6 sec) kill time)
+	LiftUsingPOT(-80, 620, "down",6000);
 
 	//Close calw to flip it out
 	SetMotor(claw, -127);
-	wait1Msec(50);
+	wait1Msec(100);
 	SetMotor(claw,0);
 	wait1Msec(500);
 	SetMotor (claw, 127);
@@ -250,20 +232,7 @@ void defaultAuton (){
 	wait1Msec(500);
 
 	//drive forward to get cone
-	while (distance < 39){
-		SetMotor(leftBack, 60);
-		SetMotor(rightBack, 60);
-		SetMotor(leftFront, 60);
-		SetMotor(rightFront, 60);
-
-		distance = SensorValue[SonicSensor];
-		wait1Msec(20);
-
-	}
-
-	stopDriving("forward");
-	wait1Msec(500);
-
+	encDriving(60,200);
 
 	//close and hold claw
 	SetMotor(claw, -100);
@@ -274,24 +243,9 @@ void defaultAuton (){
 
 	//Raise lift (80 power, 1500 Top POT, up, 6000(6 sec) kill time)
 	LiftUsingPOT(80, 1500, "up",6000);
-	distance = SensorValue[SonicSensor];
-
 
 	//drive forward to tower
-	while (distance < 62){
-		SetMotor(leftBack, 60);
-		SetMotor(rightBack, 60);
-		SetMotor(leftFront, 60);
-		SetMotor(rightFront, 60);
-
-		wait1Msec(20);
-		distance = SensorValue[SonicSensor];
-
-	}
-
-	//stop driving forward
-	stopDriving("forward");
-	wait1Msec(500);
+	encDriving(50,200);
 
 	//move lift down with cone (-40 power, top POT 1400, down, 4000(4 sec) kill switch)
 	//open claw
@@ -302,17 +256,9 @@ void defaultAuton (){
 	wait1Msec(500);
 
 	// drive backward	to move away from tower after cone is on
-	while (distance > 50){
-		SetMotor(leftBack, -70);
-		SetMotor(rightBack, -70);
-		SetMotor(leftFront, -70);
-		SetMotor(rightFront, -70);
-
-		wait1Msec(20);
-		distance = SensorValue[SonicSensor];
-	}
-
-	stopDriving("backward");
+	driveFunc(-60,-60);
+	wait1Msec(425);
+	driveFunc(0,0);
 
 }
 /*---------------------------------------------------------------------------*/
@@ -342,10 +288,93 @@ void pre_auton(){
 	bStopTasksBetweenModes = false;
 	bDisplayCompetitionStatusOnLcd = false;
 
+	//Leave this value alone
+	int lcdScreenMin = 1;
+	//This keeps track of which program you want to run
+	int lcdScreen = 1;
+	//Change this value to be the maximum number of programs you want on the robot
+	int lcdScreenMax = 4;
+	//Turns on the Backlight
+	bLCDBacklight = true;
 
 
+	//Copied from someone's sample code because the documentation for RobotC won't tell me anything useful
+	//These should logically work, but I'm not 100% sure
+	const short leftButton = 1;
+	const short centerButton = 2;
+	const short rightButton = 4;
 
-	startTask(LCDControl);
+	while (bIfiRobotDisabled == 1) { //Ensures this code will run ONLY when the robot is disabled
+		if (nLCDButtons == leftButton) { //Scrolls to the left
+			if (lcdScreenMin == lcdScreen) {
+				lcdScreen = lcdScreenMax;
+				wait1Msec(250);
+				} else {
+				lcdScreen --;
+				wait1Msec(250);
+			}
+		}
+		if (nLCDButtons == rightButton) { //Scrolls to the right
+			if (lcdScreenMax == lcdScreen) {
+				lcdScreen = lcdScreenMin;
+				wait1Msec(250);
+				} else {
+				lcdScreen++;
+				wait1Msec(250);
+			}
+		}
+		if (lcdScreen == 1 && Program != 1) {
+			displayLCDCenteredString (0, "Default Auton"); //Name the first program here
+			displayLCDCenteredString (1, ""); //Name the first program here
+			if (nLCDButtons == centerButton) {
+				Program = lcdScreen; //Sets the Program to the one on-screen
+				displayLCDCenteredString (0, "Default Auton");
+				displayLCDCenteredString (1, "Selected!");
+				wait1Msec(1500);
+			}
+		}
+		else if (lcdScreen == 1 && Program == 1) {
+			displayLCDCenteredString (0, "[Default Auton]"); //We use brackets to mark which program we have chosen
+			displayLCDCenteredString (1, ""); //So that while we're scrolling, we can have one marked
+		}
+		//------------------------------------------------------------
+
+		else if (lcdScreen == 2 && Program != 2) {
+			displayLCDCenteredString (0, "Drive Straight"); //Name the second program here
+			displayLCDCenteredString (1, ""); //Name the second program here
+			if (nLCDButtons == centerButton) {
+				Program = lcdScreen; //Sets the Program to the one on-screen
+				displayLCDCenteredString (0, "Drive Straight");
+				displayLCDCenteredString (1, "Selected!");
+				wait1Msec(1500);
+			}
+			} else if (lcdScreen == 2 && Program == 2) {
+			displayLCDCenteredString (0, "[Skills]"); //We use brackets to mark which program we have chosen
+			displayLCDCenteredString (1, ""); //So that while we're scrolling, we can have one marked
+		}
+		//-------------------------------------------------------------
+
+		else if (lcdScreen == 3 && Program != 3) {
+			displayLCDCenteredString (0, "No Auton"); //Name the third program here
+			displayLCDCenteredString (1, ""); //Name the third program here
+			if (nLCDButtons == centerButton) {
+				Program = lcdScreen; //Sets the Program to the one on-screen
+				displayLCDCenteredString (0, "No Auton Has");
+				displayLCDCenteredString (1, "Been Selected!");
+				wait1Msec(1500);
+			}
+			} else if (lcdScreen == 3 && Program == 3) {
+			displayLCDCenteredString (0, "[No Auton]"); //We use brackets to mark which program we have chosen
+			displayLCDCenteredString (1, ""); //So that while we're scrolling, we can have one marked
+		}
+		//-----------------------------------------------------------------
+
+		else if (lcdScreen == 4 ) {
+			displayLCDCenteredString (0,"top pot");
+			displayLCDNumber(1, 0,SensorValue[topPOT], -1);
+		}
+
+	}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -359,17 +388,46 @@ void pre_auton(){
 
 task autonomous()
 {
-	stopTask(LCDControl);
-	switch(auton){
-	case 1:
-		break;
-	case -1:
-		defaultAuton();
-		break;
-	default:
-		defaultAuton();
-		break;
+	bLCDBacklight = false;
 
+	if(Program == 1){
+		defaultAuton();
+	}
+	//drives down side of field to get away from starting area
+	else if(Program == 2){
+
+		//Raise lift to deploy claw
+		LiftUsingPOT(80, 800, "up",3000);
+
+		//drive forward to shake claw
+		driveFunc(40,40);
+		wait1Msec(800);
+		driveFunc(0,0);
+
+		//Close calw to flip it out
+		SetMotor(claw, -127);
+		wait1Msec(100);
+		SetMotor(claw,0);
+		wait1Msec(500);
+		SetMotor (claw, 127);
+		wait1Msec(200);
+		SetMotor (claw, 0);
+		wait1Msec(500);
+
+		//drive backwards to shake claw
+		driveFunc(-40,-40);
+		wait1Msec(750);
+		driveFunc(0,0);
+
+		//lower lift (80 power, 1500 Top POT, up, 6000(6 sec) kill time)
+		LiftUsingPOT(-80, 620, "down",2000);
+
+		//Drive allong field
+		encDriving(40,1200);
+
+	}
+	else if(Program == 3){
+		//This is the do nothing auton
 	}
 }
 /*---------------------------------------------------------------------------*/
@@ -412,8 +470,8 @@ task usercontrol(){
 	int closeFlipper;
 	int MGflipperPower = 0;
 
-
-#define MAX_POWER 127
+//Max power is 90 so we hopefully dont stall every 5 seconds
+#define MAX_POWER 90
 #define DEADBAND 5
 
 	while (true){
@@ -470,13 +528,13 @@ task usercontrol(){
 		// 5U hold
 		// 6U claw close
 		// 6D claw open
-		if (vexRT[Btn5UXmtr2] == 1) {
+		if (vexRT[Btn5U] == 1) {
 			clawPower = -20;
 		}
-		else if (vexRT[Btn6UXmtr2] == 1) {
+		else if (vexRT[Btn6U] == 1) {
 			clawPower = -100;
 		}
-		else if (vexRT[Btn6DXmtr2] == 1) {
+		else if (vexRT[Btn6D] == 1) {
 			clawPower = 100;
 		}
 
@@ -493,11 +551,11 @@ task usercontrol(){
 
 
 		// lift to joystick
-		topPower = vexRT[Ch3Xmtr2];
-		bottomPower = vexRT[Ch3Xmtr2];
+		topPower = vexRT[Ch2];
+		bottomPower = vexRT[Ch2];
 		// Limitrs how high the lift can go
 		if (topPOTvalue >= maxPOTtop || bottomPOTvalue >= maxPOTbottom){
-			if (vexRT[Ch3Xmtr2] > 0 ){
+			if (vexRT[Ch2] > 0 ){
 				topPower = 0;
 				bottomPower = 0;
 			}
