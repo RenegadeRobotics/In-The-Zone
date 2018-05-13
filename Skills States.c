@@ -213,12 +213,12 @@ task autonomous()
 	wait1Msec(20);
 
 
-	// ----- ZIG-ZAG PATTERN STARTS HERE -----
+	// ----- ZIG-ZAG PATTERN STARTS HERE -----//
 	//drive forward straight #1
 
 	//straight #1
 	driveFunc(80, 80);
-	wait1Msec(1172);
+	wait1Msec(1010);
 
 	driveFunc(0, 0);
 	wait1Msec(500);
@@ -232,7 +232,7 @@ task autonomous()
 
 	//straight #2
 	encDriving(-127,200);
-	wait1Msec(450);
+	wait1Msec(375);
 
 	//turn zig zag #2
 	driveFunc(65, -65);

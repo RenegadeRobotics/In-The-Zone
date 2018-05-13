@@ -31,26 +31,109 @@
 #pragma systemFile
 
 
-// drive, setting motors in a function
-void driveFunc(int rightPower, int leftPower){
+int clicksToGo;
+float rampingPowerAmount;
+
+//Change values here:
+//Be sure to have float as deciaml
+float rampUpClicks = 300.0;
+float rampDownClicks = 150.0;
+
+//The lowest value that moves the robot
+float minToMove = 25.0;
+
+int useThisforRightPower;
+int useThisforLeftPower;
+int leftAbs;
+
+int error;
+int integral;
+int derivative;
+int lastError;
+
+float Kp = 1.5;
+float Ki = 0.1;
+float Kd = 0.05;
+
+//Drive Function
+void driveFunc(int leftPower, int rightPower){
 	SetMotor (FR, rightPower);
 	SetMotor (FL, leftPower);
 	SetMotor (BR, rightPower);
 	SetMotor (BL, leftPower);
 }
-
-// NEED COMMENT HERE
-void encDriving(int power, int encClicks){
+// Reset everything
+void resetEverything () {
 	SensorValue[rtBack] = 0;
 	SensorValue[ltBack] = 0;
 
-	driveFunc(power - 5, power);
+	clicksToGo = 0;
+	rampingPowerAmount = 0;
+	useThisforRightPower = 0;
+	useThisforLeftPower = 0;
+	leftAbs = 0;
 
-	// wait for encoder clicks; do nothing
-	while(SensorValue[rtBack] < encClicks){
+	error = 0;
+	integral = 0;
+	derivative = 0;
+	lastError = 0;
+}
+
+//PID Driving
+void encDriving(int Lpower, int targetClicks){
+
+	resetEverything();
+	rampingPowerAmount = abs(Lpower) - minToMove;
+
+	while(abs(SensorValue[ltBack]) < targetClicks){
+
+		//Set variables
+		leftAbs = abs(SensorValue[ltBack]);
+		clicksToGo = targetClicks - leftAbs;
+
+		//Ramp up
+		if (leftAbs < rampUpClicks){
+			useThisforLeftPower = ((rampingPowerAmount / rampUpClicks) * leftAbs + minToMove) * sgn(Lpower);
+		}
+		//Ramp Down
+		else if(clicksToGo < rampDownClicks){
+			useThisforLeftPower = ((rampingPowerAmount / rampDownClicks) * clicksToGo + minToMove) * sgn(Lpower);
+		}
+		//Drive at Lpower. Use abs to allow negatives
+		else {
+			useThisforLeftPower = Lpower;
+		}
+
+		//Match the sides
+		error = SensorValue[ltBack] - SensorValue[rtBack];
+		integral = integral + error;
+		derivative = error - lastError;
+		lastError = error;
+
+		// sgn makes the sign match the origional function call
+		useThisforRightPower = useThisforLeftPower + error * Kp + integral * Ki + derivative * Kd;
+
+
+		driveFunc(useThisforLeftPower, useThisforRightPower);
 		wait1Msec(20);
+
+		//Get these values to graph
+		datalogDataGroupStart();
+		datalogAddValue( 0, error);
+		datalogAddValue( 1, integral);
+		datalogAddValue( 2, SensorValue[ltBack]);
+		datalogAddValue( 3, SensorValue[rtBack]);
+		datalogAddValue( 4, useThisforLeftPower );
+		datalogAddValue( 5, useThisforRightPower );
+		datalogDataGroupEnd();
+
 	}
 
+	// put on the brakes
+	driveFunc(-15, -15);
+	wait1Msec(100);
+
+	// stop
 	driveFunc(0,0);
 }
 
@@ -213,30 +296,27 @@ task autonomous()
 	wait1Msec(20);
 
 
-	// ----- ZIG-ZAG PATTERN STARTS HERE -----
+	// ----- ZIG-ZAG PATTERN STARTS HERE -----//
 	//drive forward straight #1
 
 	//straight #1
-	driveFunc(80, 80);
-	wait1Msec(1172);
-
-	driveFunc(0, 0);
-	wait1Msec(500);
+	encDriving(80, 750);
+	wait1Msec(100);
 
 	//turn zigzag #1
-	driveFunc(75, -75);
-	wait1Msec(625);
+	driveFunc(-75, 75);
+	wait1Msec(700);
 
 	driveFunc(0, 0);
 	wait1Msec(500);
 
 	//straight #2
 	encDriving(-127,200);
-	wait1Msec(450);
+	wait1Msec(400);
 
-	//turn zig zag #2
-	driveFunc(65, -65);
-	wait1Msec(675);
+	//turn fig zag #2
+	driveFunc(-65, 65);
+	wait1Msec(775);
 
 	driveFunc(0, 0);
 	wait1Msec(500);
@@ -264,8 +344,6 @@ task autonomous()
 	driveFunc(-80,-80);
 	wait1Msec(1204);
 
-	SetMotor(MGLift, 0);
-	wait1Msec(50);
 
 	//turn off MGLift
 	SetMotor(MGLift, 0);
@@ -277,34 +355,22 @@ task autonomous()
 
 	SetMotor (MGpusher, 0);
 
-	// drive forward to ensure cone and MG go over
-	// extra bump
-	/*driveFunc(-127, -127);
-	wait1Msec(500);
-
-	driveFunc(0, 0);
-	wait1Msec(50);*/
 
 	//Drive backwards
 	driveFunc(70,70);
-	wait1Msec(1000);
+	wait1Msec(900);
 
 	driveFunc(0,0);
-	wait1Msec(50);
+	wait1Msec(500);
 
 	//turn towards parking
-	driveFunc(80, -80);
-	wait1Msec(350);
-
+	driveFunc(-60, 60);
+	wait1Msec(500);
 	driveFunc(0, 0);
-	wait1Msec(50);
+	wait1Msec(500);
 
 	//Drive backwards
-	driveFunc(60,60);
-	wait1Msec(3500);
-
-	driveFunc(0,0);
-	wait1Msec(50);
+	encDriving(60, 1800);
 }
 
 

@@ -74,18 +74,7 @@ void pre_auton()
 
 task autonomous()
 {
-	//Drive towards mobile goal as prep for driver
-	SetMotor (FR, -90);
-	SetMotor (FL, -90);
-	SetMotor (BR, -90);
-	SetMotor (BL, -90);
-	wait1Msec(175);
-	SetMotor (FR, 0);
-	SetMotor (FL, 0);
-	SetMotor (BR, 0);
-	SetMotor (BL, 0);
-	wait1Msec (1000);
-	/*
+
 	//move backward to distance self from cone at 40 power and stop
 	SetMotor (FR, -90);
 	SetMotor (FL, -90);
@@ -106,8 +95,8 @@ task autonomous()
 	SetMotor (ConeArm, 0);
 
 	SetMotor (Roller, 80);
-	wait1Msec(350);
-	SetMotor (Roller, 0);
+	wait1Msec(700);
+	SetMotor (Roller, 35);
 
 
 	//arm up (straight)
@@ -124,6 +113,18 @@ task autonomous()
 	}
 	SetMotor(MGLift, 0);
 	wait1Msec(100);
+
+	//Drive towards mobile goal as prep for driver control
+	SetMotor (FR, -90);
+	SetMotor (FL, -90);
+	SetMotor (BR, -90);
+	SetMotor (BL, -90);
+	wait1Msec(1000);
+	SetMotor (FR, 0);
+	SetMotor (FL, 0);
+	SetMotor (BR, 0);
+	SetMotor (BL, 0);
+	wait1Msec (100);
 
 	//drive backward to get mobile goal
 	while (SensorValue[rtBack] < 1600){
@@ -214,7 +215,7 @@ task autonomous()
 	SetMotor (FL, 0);
 	SetMotor (BR, 0);
 	SetMotor (BL, 0);
-*/
+
 }
 
 
@@ -276,11 +277,11 @@ task usercontrol()
 
 		//MGLift
 		MGliftValue = SensorValue[MG];
-		if(vexRT[Btn6D] == 1 && MGliftValue > -190){
-			MGliftPower = 90;
+		if(vexRT[Btn6D] == 1){
+			MGliftPower = 127;
 		}
 		else if (vexRT[Btn6U] == 1 && MGliftValue < 1100){
-			MGliftPower = -50;
+			MGliftPower = -127;
 		}
 		else{
 			MGliftPower = 0;
@@ -291,7 +292,7 @@ task usercontrol()
 		if(vexRT[Btn5D] == 1){
 			if(SensorValue[MG] > 190){
 				while (SensorValue[MG] > 600){
-					SetMotor(MGLift,90);
+					SetMotor(MGLift,127);
 					wait1Msec(20);
 				}
 				SetMotor(MGLift,0);
@@ -299,7 +300,7 @@ task usercontrol()
 
 			else{
 				while (SensorValue[MG] < 250){
-					SetMotor(MGLift,-50);
+					SetMotor(MGLift,-127);
 					wait1Msec(20);
 				}
 				SetMotor(MGLift,0);
@@ -309,10 +310,10 @@ task usercontrol()
 		}
 
 		//MGpusher
-		if (vexRT[Btn7U] == 1) {
+		if (vexRT[Btn5UXmtr2] == 1) {
 			SetMotor(MGpusher, 127);
 		}
-		else if (vexRT[Btn7D] == 1) {
+		else if (vexRT[Btn5DXmtr2] == 1) {
 			SetMotor(MGpusher, -127);
 		}
 		else SetMotor(MGpusher,0);

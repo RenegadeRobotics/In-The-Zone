@@ -4,8 +4,8 @@
 #pragma config(Sensor, in2,    topPOT,         sensorPotentiometer)
 #pragma config(Sensor, dgtl2,  backLeftENC,    sensorQuadEncoder)
 #pragma config(Sensor, dgtl5,  backRightENC,   sensorQuadEncoder)
-#pragma config(Sensor, dgtl7,  SonicSensor,    sensorSONAR_cm)
-#pragma config(Sensor, dgtl10, Align,          sensorSONAR_cm)
+#pragma config(Sensor, dgtl7,  SonicSensor,    sensorSONAR_mm)
+#pragma config(Sensor, dgtl10, Align,          sensorSONAR_mm)
 #pragma config(Motor,  port2,           rightBack,     tmotorVex393_MC29, openLoop, reversed, encoderPort, dgtl5)
 #pragma config(Motor,  port3,           rightFront,    tmotorVex393_MC29, openLoop, reversed, encoderPort, dgtl5)
 #pragma config(Motor,  port4,           MGflipper,     tmotorVex393_MC29, openLoop)
@@ -41,33 +41,153 @@
 /*                     Renegade Autonomous Functions                         */
 /*---------------------------------------------------------------------------*/
 
-// Auton robot brakes
-void stopDriving(string *direction){
-	if (*direction == "forward"){
-		//"true" makes it not slew
-		SetMotor(leftFront, -30, true);
-		SetMotor(rightFront, -30, true);
-		SetMotor(leftBack, -30, true);
-		SetMotor(rightBack, -30, true);
 
-		wait1Msec(25);
-	}
-	else {
-		SetMotor(leftFront, 30, true);
-		SetMotor(rightFront, 30, true);
-		SetMotor(leftBack, 30, true);
-		SetMotor(rightBack, 30, true);
+int clicksToGo;
+float rampingPowerAmount;
 
-		wait1Msec(50);
-	}
+//Change values here:
+//Be sure to have float as deciaml
+float rampUpClicks = 300.0;
+float rampDownClicks = 150.0;
 
-	SetMotor(rightBack, 0);
-	SetMotor(leftBack, 0);
-	SetMotor(leftFront, 0);
-	SetMotor(rightFront, 0);
+//The lowest value that moves the robot
+float minToMove = 25.0;
 
+int useThisforRightPower;
+int useThisforLeftPower;
+int leftAbs;
+
+int ultrasonicArray[5];
+int currentValue;
+
+int error;
+int integral;
+int derivative;
+int lastError;
+
+float Kp = 1.8;
+float Ki = 0.0;
+float Kd = 0.0;
+
+//Drive Function
+void driveFunc(int leftPower, int rightPower){
+	SetMotor (rightFront, rightPower);
+	SetMotor (leftFront, leftPower);
+	SetMotor (rightBack, rightPower);
+	SetMotor (leftBack, leftPower);
+}
+// Reset everything
+void resetEverything () {
+	SensorValue[backRightENC] = 0;
+	SensorValue[backLeftENC] = 0;
+
+	clicksToGo = 0;
+	rampingPowerAmount = 0;
+	useThisforRightPower = 0;
+	useThisforLeftPower = 0;
+	leftAbs = 0;
+
+	error = 0;
+	integral = 0;
+	derivative = 0;
+	lastError = 0;
+}
+// Swap two variables
+#define swap(w, z) temp = w; w = z; z = temp;
+#define sort(x, y) if(x > y) { swap(x, y); }
+int temp;
+
+// Median could be computed two less steps...
+int ultrasonicMedian(int a, int b, int c, int d, int e){
+    sort(a,b);
+    sort(d,e);
+    sort(a,c);
+    sort(b,c);
+    sort(a,d);
+    sort(c,d);
+    sort(b,e);
+    sort(b,c);
+    // this last one is unnecessary for the median
+    //sort(d,e);
+
+    return c;
 }
 
+// function to keep track of last 5 values; each time through the loop, do this
+void rollingValues() {
+    for (int i = 4; i > 0; i--) {
+      ultrasonicArray[i] = ultrasonicArray[i-1];
+    }
+    ultrasonicArray[0] = currentValue;
+}
+
+//PID Driving
+void UltraSonicDriving(int Lpower, int targetClicks, int targetDistance){
+
+	resetEverything();
+	rampingPowerAmount = abs(Lpower) - minToMove;
+
+	while(abs(SensorValue[backLeftENC]) < targetClicks){
+
+		//Set variables
+		leftAbs = abs(SensorValue[backLeftENC]);
+		clicksToGo = targetClicks - leftAbs;
+
+		//Ramp up
+		if (leftAbs < rampUpClicks){
+			useThisforLeftPower = ((rampingPowerAmount / rampUpClicks) * leftAbs + minToMove) * sgn(Lpower);
+		}
+		//Ramp Down
+		else if(clicksToGo < rampDownClicks){
+			useThisforLeftPower = ((rampingPowerAmount / rampDownClicks) * clicksToGo + minToMove) * sgn(Lpower);
+		}
+		//Drive at Lpower. Use abs to allow negatives
+		else {
+			useThisforLeftPower = Lpower;
+		}
+		currentValue = SensorValue[SonicSensor];
+
+    // if this value is different from the last value by more than 5
+    if (currentValue > ultrasonicArray[0] + 5){
+      currentValue = ultrasonicMedian(ultrasonicArray[0], ultrasonicArray[1],
+      							 									ultrasonicArray[2], ultrasonicArray[3],
+      							 									ultrasonicArray[4]);
+    }
+
+		//Match the sides
+		error = currentValue - targetDistance;
+		integral = integral + error;
+		derivative = error - lastError;
+		lastError = error;
+
+		// sgn makes the sign match the origional function call
+		useThisforRightPower = useThisforLeftPower + error * Kp + integral * Ki + derivative * Kd;
+
+
+		driveFunc(useThisforLeftPower, useThisforRightPower);
+		wait1Msec(20);
+
+		//Get these values to graph
+		datalogDataGroupStart();
+		datalogAddValue( 0, error);
+		datalogAddValue( 1, integral);
+		datalogAddValue( 2, SensorValue[backLeftENC]);
+		datalogAddValue( 3, SensorValue[SonicSensor]);
+		datalogAddValue( 4, useThisforLeftPower );
+		datalogAddValue( 5, useThisforRightPower );
+		datalogDataGroupEnd();
+
+		rollingValues();
+
+	}
+
+	// put on the brakes
+	driveFunc(-15, -15);
+	wait1Msec(100);
+
+	// stop
+	driveFunc(0,0);
+}
 
 // use an asterisk on direction variable below; makes it a pointer
 // this is the way you have to pass strings/characters to a function in RobotC
@@ -235,9 +355,6 @@ void defaultAuton (){
 	SetMotor(rightFront, -80, true);
 
 	wait1Msec(500);
-	stopDriving("backward");
-	wait1Msec(500);
-
 
 	//Close calw to flip it out
 	SetMotor(claw, -127);
@@ -259,10 +376,7 @@ void defaultAuton (){
 		distance = SensorValue[SonicSensor];
 		wait1Msec(20);
 
-	}
-
-	stopDriving("forward");
-	wait1Msec(500);
+}
 
 
 	//close and hold claw
@@ -289,9 +403,6 @@ void defaultAuton (){
 
 	}
 
-	//stop driving forward
-	stopDriving("forward");
-	wait1Msec(500);
 
 	//move lift down with cone (-40 power, top POT 1400, down, 4000(4 sec) kill switch)
 	//open claw
@@ -312,7 +423,6 @@ void defaultAuton (){
 		distance = SensorValue[SonicSensor];
 	}
 
-	stopDriving("backward");
 
 }
 /*---------------------------------------------------------------------------*/
@@ -342,8 +452,12 @@ void pre_auton(){
 	bStopTasksBetweenModes = false;
 	bDisplayCompetitionStatusOnLcd = false;
 
+	#define START_DISTANCE 300
 
-
+    // starting Ultrasonic array values
+    for(int i=0; i<5; i++) {
+        ultrasonicArray[i] = START_DISTANCE;
+    }
 
 	startTask(LCDControl);
 }
@@ -359,7 +473,7 @@ void pre_auton(){
 
 task autonomous()
 {
-	stopTask(LCDControl);
+	/*stopTask(LCDControl);
 	switch(auton){
 	case 1:
 		break;
@@ -368,10 +482,12 @@ task autonomous()
 		break;
 	default:
 		defaultAuton();
-		break;
+		break;*/
+
+		UltraSonicDriving(60,1700,300);
 
 	}
-}
+
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
 /*                              User Control Task                            */
